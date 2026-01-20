@@ -45,16 +45,16 @@ story.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 [P] Define core domain types in `src/core/types.ts` (PieceType, Piece, Board, Match, actions)
-- [ ] T009 [P] Define ranks and rule helpers in `src/core/rules.ts` (rank map, King/Pawn rule helpers)
-- [ ] T010 [P] Implement board coordinate helpers in `src/core/boardUtils.ts` (index↔row/col, adjacency,
+- [x] T008 [P] Define core domain types in `src/core/types.ts` (PieceType, Piece, Board, Match, actions)
+- [x] T009 [P] Define ranks and rule helpers in `src/core/rules.ts` (rank map, King/Pawn rule helpers)
+- [x] T010 [P] Implement board coordinate helpers in `src/core/boardUtils.ts` (index↔row/col, adjacency,
   line scanning for Cannon)
-- [ ] T011 Create initial match/board factory in `src/core/BoardGenerator.ts` (API skeleton per plan)
-- [ ] T012 Create GameEngine API skeleton in `src/core/GameEngine.ts` (functions per
+- [x] T011 Create initial match/board factory in `src/core/BoardGenerator.ts` (API skeleton per plan)
+- [x] T012 Create GameEngine API skeleton in `src/core/GameEngine.ts` (functions per
   `specs/001-banqi-game-rules/contracts/game-engine.md`)
-- [ ] T013 [P] Add Jest unit test scaffolding for core files in `tests/unit/core/rules.test.ts`,
+- [x] T013 [P] Add Jest unit test scaffolding for core files in `tests/unit/core/rules.test.ts`,
   `tests/unit/core/BoardGenerator.test.ts`, `tests/unit/core/GameEngine.test.ts`
-- [ ] T014 Create Zustand store skeleton in `src/store/gameStore.ts` (match state + actions that call core
+- [x] T014 Create Zustand store skeleton in `src/store/gameStore.ts` (match state + actions that call core
   logic)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel

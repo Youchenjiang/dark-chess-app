@@ -31,7 +31,16 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Verify compliance with Dark Chess App Constitution principles:
+
+- **Framework**: Confirm React Native with Expo Managed Workflow and TypeScript usage
+- **Architecture**: Verify Clean Architecture separation (Game Core Logic vs UI Components)
+- **Testing**: Ensure Game Core Logic has 100% unit test coverage plan with Jest
+- **UI/UX**: Validate minimalist traditional Chinese aesthetic and 4x8 responsive grid
+- **Language**: Confirm English code/comments and Traditional Chinese UI text
+- **State Management**: Verify Zustand usage for game board state
+
+Any violations MUST be justified in the Complexity Tracking table below.
 
 ## Project Structure
 

@@ -1,50 +1,78 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+Version change: [TEMPLATE] → 1.0.0
+Modified principles: N/A (initial creation)
+Added sections: Core Principles (6 principles), Development Standards, Governance
+Removed sections: N/A
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md - Updated Constitution Check section
+  ✅ .specify/templates/spec-template.md - Verified alignment
+  ✅ .specify/templates/tasks-template.md - Verified alignment
+Follow-up TODOs: None
+-->
+
+# Dark Chess App Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. React Native with Expo Framework
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+The project MUST use React Native with Expo Managed Workflow for seamless Android/iOS deployment. TypeScript MUST be used strictly throughout the codebase. This ensures cross-platform compatibility, simplified deployment, and type safety across the entire application.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Clean Architecture Separation
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+The Game Core Logic MUST be completely separated from React UI Components. The core logic MUST be implemented as pure TypeScript with zero UI dependencies. This separation enables:
+- Independent testing of game rules without UI complexity
+- Reusability of game logic across different UI implementations
+- Clear boundaries between business logic and presentation layer
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Comprehensive Testing (NON-NEGOTIABLE)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+The Game Core Logic MUST achieve 100% unit test coverage using Jest. All game rules including piece hierarchy, movement validation, and capturing logic MUST be verified through automated tests. This is critical for a strategy game where rule correctness directly impacts gameplay integrity.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Minimalist Traditional Chinese Aesthetic
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+The UI/UX MUST follow a minimalist aesthetic with traditional Chinese feel. Visual design MUST use wooden textures or simple colors. The game board MUST be responsive and implement a 4x8 grid layout. This ensures cultural authenticity while maintaining modern usability standards.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Language Standards
+
+Code comments and git commit messages MUST be written in English. All user-facing application UI text MUST be displayed in Traditional Chinese (繁體中文). This separation ensures code maintainability for international developers while providing localized user experience.
+
+### VI. State Management with Zustand
+
+Game board state MUST be managed using Zustand. This lightweight state management solution provides simplicity and performance suitable for mobile game state requirements.
+
+## Development Standards
+
+### Code Quality
+
+- TypeScript strict mode MUST be enabled
+- All Game Core Logic functions MUST have corresponding unit tests
+- Code reviews MUST verify architecture separation compliance
+- UI components MUST NOT contain game rule logic
+
+### Testing Requirements
+
+- Game Core Logic: 100% unit test coverage required
+- UI Components: Integration tests for user interactions
+- Test files MUST be co-located with source files
+- Tests MUST run before any commit (pre-commit hooks recommended)
+
+### UI/UX Guidelines
+
+- Board layout: 4x8 grid (responsive)
+- Visual style: Minimalist with traditional Chinese elements
+- Color scheme: Wooden textures or simple, muted colors
+- Typography: Traditional Chinese fonts for UI text
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all other development practices and guidelines. Amendments require:
+- Documentation of the proposed change
+- Justification for the modification
+- Impact assessment on existing code and tests
+- Approval from Tech Lead
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+All pull requests and code reviews MUST verify compliance with these principles. Any violation MUST be addressed before merge. Complexity additions MUST be justified against simpler alternatives.
+
+**Version**: 1.0.0 | **Ratified**: 2025-01-27 | **Last Amended**: 2025-01-27

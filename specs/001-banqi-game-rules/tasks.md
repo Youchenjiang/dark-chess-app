@@ -25,16 +25,16 @@ story.
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Initialize Expo React Native TypeScript app in repo root (creates `package.json`, `app.json`,
+- [x] T001 Initialize Expo React Native TypeScript app in repo root (creates `package.json`, `app.json`,
   `App.tsx`)
-- [ ] T002 Configure TypeScript strict mode in `tsconfig.json`
-- [ ] T003 [P] Configure linting + formatting in `.eslintrc.*`, `.prettierrc`, `.prettierignore`
-- [ ] T004 Create project directories per plan in `src/core/`, `src/components/`, `src/store/`,
+- [x] T002 Configure TypeScript strict mode in `tsconfig.json`
+- [x] T003 [P] Configure linting + formatting in `.eslintrc.*`, `.prettierrc`, `.prettierignore`
+- [x] T004 Create project directories per plan in `src/core/`, `src/components/`, `src/store/`,
   `tests/unit/core/`, `tests/integration/components/`
-- [ ] T005 Configure Jest + coverage thresholds for core logic in `jest.config.js` and scripts in
+- [x] T005 Configure Jest + coverage thresholds for core logic in `jest.config.js` and scripts in
   `package.json`
-- [ ] T006 [P] Install and configure React Native Testing Library dependencies in `package.json`
-- [ ] T007 [P] Add basic `.gitignore` updates for Node/Expo artifacts in `.gitignore` (preserve existing
+- [x] T006 [P] Install and configure React Native Testing Library dependencies in `package.json`
+- [x] T007 [P] Add basic `.gitignore` updates for Node/Expo artifacts in `.gitignore` (preserve existing
   entries)
 
 ---

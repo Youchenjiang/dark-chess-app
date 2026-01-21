@@ -4,12 +4,22 @@
  */
 
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, Dimensions } from 'react-native';
 import { Piece } from '../core/types';
+import { COLS } from '../core/boardUtils';
 
 interface PieceComponentProps {
   piece: Piece | null;
 }
+
+// Calculate font size based on screen width
+const screenWidth = Dimensions.get('window').width;
+const BOARD_PADDING = 16;
+const BORDER_WIDTH = 8;
+const CELL_MARGIN = 1;
+const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
+const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * COLS)) / COLS);
+const FONT_SIZE = Math.floor(CELL_SIZE * 0.5); // Font size is 50% of cell size
 
 // Chinese characters for each piece type
 const PIECE_LABELS: Record<Piece['type'], string> = {
@@ -52,10 +62,10 @@ export const PieceComponent: React.FC<PieceComponentProps> = ({ piece }) => {
 
 const styles = StyleSheet.create({
   empty: {
-    fontSize: 32,
+    fontSize: FONT_SIZE,
   },
   piece: {
-    fontSize: 36,
+    fontSize: FONT_SIZE,
     fontWeight: 'bold',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -64,10 +74,10 @@ const styles = StyleSheet.create({
   },
   faceDown: {
     color: '#6B4423', // Dark brown for face-down
-    fontSize: 32,
+    fontSize: Math.floor(FONT_SIZE * 0.8),
   },
   faceUp: {
-    fontSize: 40,
+    fontSize: FONT_SIZE,
   },
   red: {
     color: '#C62828', // Deep red (traditional)

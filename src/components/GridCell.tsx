@@ -4,9 +4,10 @@
  */
 
 import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
+import { TouchableOpacity, StyleSheet, ViewStyle, Dimensions } from 'react-native';
 import { Piece } from '../core/types';
 import { PieceComponent } from './PieceComponent';
+import { COLS } from '../core/boardUtils';
 
 interface GridCellProps {
   piece: Piece | null;
@@ -14,6 +15,14 @@ interface GridCellProps {
   onTap: (index: number) => void;
   isSelected?: boolean;
 }
+
+// Calculate cell size based on screen width
+const screenWidth = Dimensions.get('window').width;
+const BOARD_PADDING = 16; // Padding from BoardView
+const BORDER_WIDTH = 8; // Border from BoardView
+const CELL_MARGIN = 1; // Margin around each cell
+const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
+const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * COLS)) / COLS);
 
 export const GridCell: React.FC<GridCellProps> = ({ piece, index, onTap, isSelected = false }) => {
   const handlePress = () => {
@@ -34,14 +43,14 @@ export const GridCell: React.FC<GridCellProps> = ({ piece, index, onTap, isSelec
 
 const styles = StyleSheet.create({
   cell: {
-    width: 80,
-    height: 80,
+    width: CELL_SIZE,
+    height: CELL_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#DEB887', // Burlywood (wooden board)
     borderWidth: 2,
     borderColor: '#8B6914', // Dark goldenrod (traditional board lines)
-    margin: 1,
+    margin: CELL_MARGIN,
     // Add subtle 3D effect for wooden feel
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

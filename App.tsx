@@ -18,10 +18,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.newGameButton} onPress={newMatch} activeOpacity={0.8}>
             <Text style={styles.newGameButtonText}>新遊戲 (NEW GAME)</Text>
@@ -29,7 +26,7 @@ export default function App() {
         </View>
         <GameInfo />
         <BoardView />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -39,14 +36,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAEBD7', // Antique white
   },
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
+    justifyContent: 'flex-start',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 8,
+    marginTop: 5,
   },
   newGameButton: {
     backgroundColor: '#5D4037', // Dark wood brown

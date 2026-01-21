@@ -21,7 +21,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const BOARD_PADDING = 16; // Padding from BoardView
 const BORDER_WIDTH = 8; // Border from BoardView
 const CELL_MARGIN = 1; // Margin around each cell
-const HEADER_FOOTER_SPACE = 200; // Space for header, GameInfo, and padding
+const HEADER_FOOTER_SPACE = 280; // Space for status bar, button, GameInfo, and padding (increased)
 const BOARD_ROWS = 8; // 8 rows in portrait mode
 
 // Calculate max cell size based on both width and height constraints

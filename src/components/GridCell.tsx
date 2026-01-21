@@ -16,13 +16,23 @@ interface GridCellProps {
   isSelected?: boolean;
 }
 
-// Calculate cell size based on screen width
-const screenWidth = Dimensions.get('window').width;
+// Calculate cell size based on screen dimensions (responsive)
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const BOARD_PADDING = 16; // Padding from BoardView
 const BORDER_WIDTH = 8; // Border from BoardView
 const CELL_MARGIN = 1; // Margin around each cell
+const HEADER_FOOTER_SPACE = 200; // Space for header, GameInfo, and padding
+const BOARD_ROWS = 8; // 8 rows in portrait mode
+
+// Calculate max cell size based on both width and height constraints
 const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
-const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
+const availableHeight = screenHeight - HEADER_FOOTER_SPACE;
+
+const cellSizeByWidth = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
+const cellSizeByHeight = Math.floor((availableHeight - (CELL_MARGIN * 2 * BOARD_ROWS)) / BOARD_ROWS);
+
+// Use the smaller dimension to ensure board fits on screen
+const CELL_SIZE = Math.min(cellSizeByWidth, cellSizeByHeight);
 
 export const GridCell: React.FC<GridCellProps> = ({ piece, index, onTap, isSelected = false }) => {
   const handlePress = () => {

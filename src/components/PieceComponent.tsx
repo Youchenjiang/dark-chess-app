@@ -12,13 +12,22 @@ interface PieceComponentProps {
   piece: Piece | null;
 }
 
-// Calculate font size based on screen width
-const screenWidth = Dimensions.get('window').width;
+// Calculate font size based on screen dimensions (responsive)
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const BOARD_PADDING = 16;
 const BORDER_WIDTH = 8;
 const CELL_MARGIN = 1;
+const HEADER_FOOTER_SPACE = 200;
+const BOARD_ROWS = 8;
+
+// Calculate max cell size based on both width and height constraints
 const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
-const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
+const availableHeight = screenHeight - HEADER_FOOTER_SPACE;
+
+const cellSizeByWidth = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
+const cellSizeByHeight = Math.floor((availableHeight - (CELL_MARGIN * 2 * BOARD_ROWS)) / BOARD_ROWS);
+
+const CELL_SIZE = Math.min(cellSizeByWidth, cellSizeByHeight);
 const FONT_SIZE = Math.floor(CELL_SIZE * 0.5); // Font size is 50% of cell size
 
 // Chinese characters for each piece type (PascalCase keys match PieceType)

@@ -69,7 +69,9 @@ export const GameInfo: React.FC = () => {
       'Target not revealed': '目標棋子尚未翻開',
       'Target is own piece': '目標是自己的棋子',
       'Target not adjacent': '目標位置不相鄰',
+      'Cannon target not in straight line': '炮的目標必須在同一直線上',
       'Cannon cannot capture adjacent piece': '炮不能吃相鄰的棋子',
+      'Cannon requires exactly one screen to capture': '炮必須跳過恰好一個棋子才能吃子',
       'King cannot capture Pawn': '帥(將)不能吃兵(卒)',
       'Invalid capture: rank too low': '無效吃子:等級太低',
     };

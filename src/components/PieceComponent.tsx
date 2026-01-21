@@ -21,26 +21,26 @@ const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
 const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
 const FONT_SIZE = Math.floor(CELL_SIZE * 0.5); // Font size is 50% of cell size
 
-// Chinese characters for each piece type
+// Chinese characters for each piece type (PascalCase keys match PieceType)
 const PIECE_LABELS: Record<Piece['type'], string> = {
-  king: '帥',    // Red: 帥, Black: 將
-  guard: '仕',   // Red: 仕, Black: 士
-  minister: '相', // Red: 相, Black: 象
-  rook: '俥',    // Red: 俥, Black: 車
-  horse: '傌',   // Red: 傌, Black: 馬
-  cannon: '炮',  // Red: 炮, Black: 包
-  pawn: '兵',    // Red: 兵, Black: 卒
+  King: '帥',      // Red: 帥, Black: 將
+  Guard: '仕',     // Red: 仕, Black: 士
+  Minister: '相',   // Red: 相, Black: 象
+  Rook: '俥',      // Red: 俥, Black: 車
+  Horse: '傌',     // Red: 傌, Black: 馬
+  Cannon: '炮',    // Red: 炮, Black: 包
+  Pawn: '兵',      // Red: 兵, Black: 卒
 };
 
 // Alternative characters for black pieces (traditional)
 const PIECE_LABELS_BLACK: Record<Piece['type'], string> = {
-  king: '將',
-  guard: '士',
-  minister: '象',
-  rook: '車',
-  horse: '馬',
-  cannon: '包',
-  pawn: '卒',
+  King: '將',
+  Guard: '士',
+  Minister: '象',
+  Rook: '車',
+  Horse: '馬',
+  Cannon: '包',
+  Pawn: '卒',
 };
 
 export const PieceComponent: React.FC<PieceComponentProps> = ({ piece }) => {

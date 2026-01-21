@@ -1,12 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useGameStore } from './src/store/gameStore';
 import { BoardView } from './src/components/BoardView';
 import { GameInfo } from './src/components/GameInfo';
+import { Toast } from './src/components/Toast';
 import { useEffect } from 'react';
 
 export default function App() {
-  const { match, newMatch } = useGameStore();
+  const { match, newMatch, error, clearError } = useGameStore();
 
   // Start a new match on mount
   useEffect(() => {
@@ -14,6 +15,39 @@ export default function App() {
       newMatch();
     }
   }, []);
+
+  // Translate error messages to Traditional Chinese
+  const translateError = (errorMsg: string): string => {
+    const translations: Record<string, string> = {
+      'No match in progress': '沒有進行中的遊戲',
+      'Invalid flip': '無效的翻牌',
+      'Invalid move': '無效的移動',
+      'Invalid capture': '無效的吃子',
+      'Match already ended': '遊戲已結束',
+      'Invalid piece index': '無效的棋子位置',
+      'No piece at index': '該位置沒有棋子',
+      'Piece already revealed': '棋子已翻開',
+      'Match not in progress': '遊戲尚未開始',
+      'Invalid indices': '無效的位置',
+      'No piece at source index': '起始位置沒有棋子',
+      'Piece not revealed': '棋子尚未翻開',
+      "Not current player's turn": '現在不是你的回合',
+      'Destination not adjacent': '目標位置不相鄰',
+      'Destination not empty': '目標位置不是空的',
+      'No piece at attacker index': '進攻位置沒有棋子',
+      'Attacker not revealed': '進攻棋子尚未翻開',
+      'No piece at target index': '目標位置沒有棋子',
+      'Target not revealed': '目標棋子尚未翻開',
+      'Target is own piece': '目標是自己的棋子',
+      'Target not adjacent': '目標位置不相鄰',
+      'Cannon target not in straight line': '炮的目標必須在同一直線上',
+      'Cannon cannot capture adjacent piece': '炮不能吃相鄰的棋子',
+      'Cannon requires exactly one screen to capture': '炮必須跳過恰好一個棋子才能吃子',
+      'King cannot capture Pawn': '帥(將)不能吃兵(卒)',
+      'Invalid capture: rank too low': '無效吃子:等級太低',
+    };
+    return translations[errorMsg] || errorMsg;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,6 +61,13 @@ export default function App() {
         <GameInfo />
         <BoardView />
       </View>
+      {error && (
+        <Toast 
+          message={translateError(error)} 
+          onDismiss={clearError}
+          duration={3000}
+        />
+      )}
     </SafeAreaView>
   );
 }

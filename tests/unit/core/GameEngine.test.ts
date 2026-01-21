@@ -411,6 +411,225 @@ describe('GameEngine', () => {
     });
   });
 
+  describe('checkWinCondition - Win by capture-all (T039)', () => {
+    it('should detect red win when 16 black pieces captured', () => {
+      const captureAllMatch: Match = {
+        ...match,
+        status: 'in-progress',
+        currentTurn: 'red',
+        redCaptured: new Array(16).fill(null).map((_, i) => ({
+          id: `black-${i}`,
+          type: 'pawn',
+          color: 'black' as const,
+          isRevealed: true,
+          isDead: true,
+        })),
+        blackCaptured: [],
+      };
+
+      const result = checkWinCondition(captureAllMatch);
+      expect(result.hasEnded).toBe(true);
+      expect(result.winner).toBe('red');
+      expect(result.reason).toBe('capture-all');
+    });
+
+    it('should detect black win when 16 red pieces captured', () => {
+      const captureAllMatch: Match = {
+        ...match,
+        status: 'in-progress',
+        currentTurn: 'black',
+        redCaptured: [],
+        blackCaptured: new Array(16).fill(null).map((_, i) => ({
+          id: `red-${i}`,
+          type: 'pawn',
+          color: 'red' as const,
+          isRevealed: true,
+          isDead: true,
+        })),
+      };
+
+      const result = checkWinCondition(captureAllMatch);
+      expect(result.hasEnded).toBe(true);
+      expect(result.winner).toBe('black');
+      expect(result.reason).toBe('capture-all');
+    });
+
+    it('should not end game if less than 16 pieces captured', () => {
+      const ongoingMatch: Match = {
+        ...match,
+        status: 'in-progress',
+        currentTurn: 'red',
+        redCaptured: new Array(10).fill(null).map((_, i) => ({
+          id: `black-${i}`,
+          type: 'pawn',
+          color: 'black' as const,
+          isRevealed: true,
+          isDead: true,
+        })),
+        blackCaptured: [],
+      };
+
+      const result = checkWinCondition(ongoingMatch);
+      expect(result.hasEnded).toBe(false);
+    });
+  });
+
+  describe('getLegalMoves (T040)', () => {
+    let inProgressMatch: Match;
+
+    beforeEach(() => {
+      inProgressMatch = executeFlip(match, 0);
+      inProgressMatch.currentTurn = 'red';
+    });
+
+    it('should find all face-down pieces as flips', () => {
+      const legalMoves = getLegalMoves(inProgressMatch);
+
+      // First piece is revealed, remaining 31 are face-down
+      expect(legalMoves.flips.length).toBe(31);
+    });
+
+    it('should find valid moves for revealed pieces', () => {
+      // Ensure piece at 0 can move to adjacent empty cell
+      inProgressMatch.board[1] = null;
+
+      const legalMoves = getLegalMoves(inProgressMatch);
+
+      // Should have at least one move
+      expect(legalMoves.moves.length).toBeGreaterThan(0);
+    });
+
+    it('should find valid captures for revealed pieces', () => {
+      // Place red piece at 0, black piece at 1
+      inProgressMatch.board[0] = {
+        id: 'red-rook-1',
+        type: 'rook',
+        color: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      inProgressMatch.board[1] = {
+        id: 'black-pawn-1',
+        type: 'pawn',
+        color: 'black',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      const legalMoves = getLegalMoves(inProgressMatch);
+
+      // Should find capture
+      const capture = legalMoves.captures.find((c) => c.fromIndex === 0 && c.toIndex === 1);
+      expect(capture).toBeDefined();
+    });
+
+    it('should return empty sets for ended match', () => {
+      const endedMatch: Match = {
+        ...inProgressMatch,
+        status: 'ended',
+        winner: 'red',
+      };
+
+      const legalMoves = getLegalMoves(endedMatch);
+
+      expect(legalMoves.flips).toEqual([]);
+      expect(legalMoves.moves).toEqual([]);
+      expect(legalMoves.captures).toEqual([]);
+    });
+  });
+
+  describe('checkWinCondition - Stalemate (T041)', () => {
+    it('should detect stalemate when current player has no legal moves', () => {
+      // Create a board with only one red piece trapped
+      const stalemateMatch: Match = {
+        ...match,
+        status: 'in-progress',
+        currentTurn: 'red',
+        board: new Array(32).fill(null),
+        redCaptured: [],
+        blackCaptured: [],
+      };
+
+      // Place red pawn at corner (index 0)
+      stalemateMatch.board[0] = {
+        id: 'red-pawn-1',
+        type: 'pawn',
+        color: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      // Surround with black pieces (adjacent at indices 1 and 8)
+      stalemateMatch.board[1] = {
+        id: 'black-king-1',
+        type: 'king',
+        color: 'black',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      stalemateMatch.board[8] = {
+        id: 'black-king-2',
+        type: 'king',
+        color: 'black',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      // Red pawn cannot capture kings (rank too low) and has no empty adjacent cells
+      // No face-down pieces to flip
+      const result = checkWinCondition(stalemateMatch);
+
+      expect(result.hasEnded).toBe(true);
+      expect(result.winner).toBe('black'); // Opponent wins
+      expect(result.reason).toBe('stalemate');
+    });
+
+    it('should not detect stalemate when player has legal flips', () => {
+      const ongoingMatch: Match = {
+        ...match,
+        status: 'in-progress',
+        currentTurn: 'red',
+      };
+
+      // Board has face-down pieces (legal flips)
+      const result = checkWinCondition(ongoingMatch);
+
+      expect(result.hasEnded).toBe(false);
+    });
+  });
+
+  describe('Ended matches reject actions (T042)', () => {
+    let endedMatch: Match;
+
+    beforeEach(() => {
+      endedMatch = {
+        ...match,
+        status: 'ended',
+        winner: 'red',
+      };
+    });
+
+    it('should reject flip when match ended', () => {
+      const result = validateFlip(endedMatch, 0);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Match already ended');
+    });
+
+    it('should reject move when match ended', () => {
+      const result = validateMove(endedMatch, 0, 1);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Match not in progress');
+    });
+
+    it('should reject capture when match ended', () => {
+      const result = validateCapture(endedMatch, 0, 1);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Match not in progress');
+    });
+  });
+
   describe('Illegal actions immutability (T030)', () => {
     it('should not mutate state on invalid flip', () => {
       const originalMatch = { ...match };

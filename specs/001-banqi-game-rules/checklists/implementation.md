@@ -100,6 +100,7 @@
 - [x] Fix responsive layout overflow
 - [x] Fix Cannon capture validation priority
 - [x] Fix board overflow with increased vertical space
+- [x] Fix error messages permanently blocking board (auto-dismiss after 3s)
 
 ### Test Fixes
 - [x] Fix PieceType casing in test files
@@ -134,11 +135,12 @@
 
 ## Implementation Summary
 
-- **Total Commits**: 15 feature/fix commits
+- **Total Commits**: 17 feature/fix commits
 - **Test Coverage**: 93.5% (58/62 tests passing)
 - **Core Logic Tests**: 100% passing (36/36)
 - **UI/UX**: Complete with Traditional Chinese aesthetic
 - **Responsive Layout**: Complete with dual-constraint calculation
+- **Error Handling**: Auto-dismiss messages (3s), no permanent blocking
 - **Game Playable**: Yes, fully functional on mobile
 
 ## Notes

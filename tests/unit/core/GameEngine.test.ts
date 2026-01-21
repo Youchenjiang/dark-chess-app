@@ -493,12 +493,20 @@ describe('GameEngine', () => {
     });
 
     it('should find valid moves for revealed pieces', () => {
-      // Ensure piece at 0 can move to adjacent empty cell
+      // Place a red piece at 0 and ensure adjacent cell 1 is empty
+      inProgressMatch.board[0] = {
+        id: 'red-pawn-1',
+        type: 'Pawn',
+        color: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
       inProgressMatch.board[1] = null;
+      inProgressMatch.currentTurn = 'red';
 
       const legalMoves = getLegalMoves(inProgressMatch);
 
-      // Should have at least one move
+      // Should have at least one move (0 -> 1)
       expect(legalMoves.moves.length).toBeGreaterThan(0);
     });
 
@@ -563,25 +571,28 @@ describe('GameEngine', () => {
         isDead: false,
       };
 
-      // Surround with black pieces (adjacent at indices 1 and 8)
+      // Surround with black higher-rank pieces (adjacent at indices 1 and 4)
+      // In 8x4 layout: index 0 = (row 0, col 0), index 1 = (0,1), index 4 = (1,0)
+      // Note: Cannot use King because Pawn can capture King (special rule)
       stalemateMatch.board[1] = {
-        id: 'black-king-1',
-        type: 'King',
+        id: 'black-rook-1',
+        type: 'Rook',
         color: 'black',
         isRevealed: true,
         isDead: false,
       };
 
-      stalemateMatch.board[8] = {
-        id: 'black-king-2',
-        type: 'King',
+      stalemateMatch.board[4] = {
+        id: 'black-rook-2',
+        type: 'Rook',
         color: 'black',
         isRevealed: true,
         isDead: false,
       };
 
-      // Red pawn cannot capture kings (rank too low) and has no empty adjacent cells
+      // Red pawn cannot capture rooks (rank too low) and has no empty adjacent cells
       // No face-down pieces to flip
+      
       const result = checkWinCondition(stalemateMatch);
 
       expect(result.hasEnded).toBe(true);

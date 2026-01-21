@@ -1,20 +1,44 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View, Button, SafeAreaView, ScrollView } from 'react-native';
+import { useGameStore } from './src/store/gameStore';
+import { BoardView } from './src/components/BoardView';
+import { GameInfo } from './src/components/GameInfo';
+import { useEffect } from 'react';
 
 export default function App() {
+  const { match, newMatch } = useGameStore();
+
+  // Start a new match on mount
+  useEffect(() => {
+    if (!match) {
+      newMatch();
+    }
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-    </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Button title="新遊戲 (New Game)" onPress={newMatch} />
+        </View>
+        <GameInfo />
+        <BoardView />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FAEBD7', // Antique white
+  },
+  scrollContent: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  header: {
+    marginBottom: 16,
   },
 });

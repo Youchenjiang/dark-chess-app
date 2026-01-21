@@ -7,7 +7,7 @@ import React from 'react';
 import { TouchableOpacity, StyleSheet, ViewStyle, Dimensions } from 'react-native';
 import { Piece } from '../core/types';
 import { PieceComponent } from './PieceComponent';
-import { COLS } from '../core/boardUtils';
+import { BOARD_COLS } from '../core/boardUtils';
 
 interface GridCellProps {
   piece: Piece | null;
@@ -22,7 +22,7 @@ const BOARD_PADDING = 16; // Padding from BoardView
 const BORDER_WIDTH = 8; // Border from BoardView
 const CELL_MARGIN = 1; // Margin around each cell
 const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
-const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * COLS)) / COLS);
+const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
 
 export const GridCell: React.FC<GridCellProps> = ({ piece, index, onTap, isSelected = false }) => {
   const handlePress = () => {

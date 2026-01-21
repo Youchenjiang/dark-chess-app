@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 import { GridCell } from './GridCell';
-import { ROWS, COLS, indexToRowCol } from '../core/boardUtils';
+import { BOARD_ROWS, BOARD_COLS, indexToRowCol } from '../core/boardUtils';
 
 export const BoardView: React.FC = () => {
   const { match, flipPiece, movePiece, capturePiece } = useGameStore();
@@ -86,11 +86,11 @@ export const BoardView: React.FC = () => {
   const renderBoard = () => {
     const rows: JSX.Element[] = [];
 
-    for (let row = 0; row < ROWS; row++) {
+    for (let row = 0; row < BOARD_ROWS; row++) {
       const cells: JSX.Element[] = [];
 
-      for (let col = 0; col < COLS; col++) {
-        const index = row * COLS + col;
+      for (let col = 0; col < BOARD_COLS; col++) {
+        const index = row * BOARD_COLS + col;
         const piece = match.board[index];
 
         cells.push(

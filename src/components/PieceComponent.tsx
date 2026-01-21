@@ -6,7 +6,7 @@
 import React from 'react';
 import { Text, StyleSheet, Dimensions } from 'react-native';
 import { Piece } from '../core/types';
-import { COLS } from '../core/boardUtils';
+import { BOARD_COLS } from '../core/boardUtils';
 
 interface PieceComponentProps {
   piece: Piece | null;
@@ -18,7 +18,7 @@ const BOARD_PADDING = 16;
 const BORDER_WIDTH = 8;
 const CELL_MARGIN = 1;
 const availableWidth = screenWidth - (BOARD_PADDING * 2) - (BORDER_WIDTH * 2);
-const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * COLS)) / COLS);
+const CELL_SIZE = Math.floor((availableWidth - (CELL_MARGIN * 2 * BOARD_COLS)) / BOARD_COLS);
 const FONT_SIZE = Math.floor(CELL_SIZE * 0.5); // Font size is 50% of cell size
 
 // Chinese characters for each piece type

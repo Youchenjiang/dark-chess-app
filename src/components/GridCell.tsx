@@ -38,14 +38,21 @@ const styles = StyleSheet.create({
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#D2B48C', // Tan (wooden board)
-    borderWidth: 1,
-    borderColor: '#8B4513', // Brown border
-    margin: 2,
+    backgroundColor: '#DEB887', // Burlywood (wooden board)
+    borderWidth: 2,
+    borderColor: '#8B6914', // Dark goldenrod (traditional board lines)
+    margin: 1,
+    // Add subtle 3D effect for wooden feel
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   selected: {
-    backgroundColor: '#F4A460', // Sandy brown (highlighted)
-    borderColor: '#FF6347', // Tomato (highlighted border)
-    borderWidth: 2,
+    backgroundColor: '#FFD700', // Gold (highlighted)
+    borderColor: '#FF8C00', // Dark orange (highlighted border)
+    borderWidth: 3,
+    elevation: 4,
   },
 });

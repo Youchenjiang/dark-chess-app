@@ -55,20 +55,26 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   piece: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   faceDown: {
-    color: '#8B4513', // Brown for face-down
+    color: '#6B4423', // Dark brown for face-down
+    fontSize: 32,
   },
   faceUp: {
-    fontSize: 36,
+    fontSize: 40,
   },
   red: {
-    color: '#D32F2F', // Red
+    color: '#C62828', // Deep red (traditional)
+    textShadowColor: 'rgba(139, 0, 0, 0.3)',
   },
   black: {
-    color: '#212121', // Black
+    color: '#1A1A1A', // Near black (traditional)
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
   },
 });

@@ -119,8 +119,17 @@ export const BoardView: React.FC = () => {
 
 const styles = StyleSheet.create({
   board: {
-    padding: 10,
-    backgroundColor: '#F5DEB3', // Wheat (board background)
+    padding: 16,
+    backgroundColor: '#F4E4C1', // Light tan (wooden board background)
+    borderWidth: 8,
+    borderColor: '#8B6914', // Dark goldenrod (board frame)
+    borderRadius: 4,
+    // Add subtle shadow for depth
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   row: {
     flexDirection: 'row',

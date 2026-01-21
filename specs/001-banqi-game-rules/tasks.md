@@ -148,22 +148,22 @@ rejected.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T039 [P] [US3] Unit tests for win-by-capture-all in `tests/unit/core/GameEngine.test.ts`
-- [ ] T040 [P] [US3] Unit tests for legal move generation in `tests/unit/core/GameEngine.test.ts`
+- [x] T039 [P] [US3] Unit tests for win-by-capture-all in `tests/unit/core/GameEngine.test.ts`
+- [x] T040 [P] [US3] Unit tests for legal move generation in `tests/unit/core/GameEngine.test.ts`
   (flips/moves/captures set)
-- [ ] T041 [P] [US3] Unit tests for stalemate detection in `tests/unit/core/GameEngine.test.ts`
-- [ ] T042 [P] [US3] Unit tests that ended matches reject actions in `tests/unit/core/GameEngine.test.ts`
+- [x] T041 [P] [US3] Unit tests for stalemate detection in `tests/unit/core/GameEngine.test.ts`
+- [x] T042 [P] [US3] Unit tests that ended matches reject actions in `tests/unit/core/GameEngine.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Implement `getLegalMoves()` in `src/core/GameEngine.ts`
-- [ ] T044 [US3] Implement `checkWinCondition()` and integrate into turn flow in `src/core/GameEngine.ts`
-- [ ] T045 [US3] Update store to persist `status/winner` and block actions after end in
+- [x] T043 [US3] Implement `getLegalMoves()` in `src/core/GameEngine.ts`
+- [x] T044 [US3] Implement `checkWinCondition()` and integrate into turn flow in `src/core/GameEngine.ts`
+- [x] T045 [US3] Update store to persist `status/winner` and block actions after end in
   `src/store/gameStore.ts`
-- [ ] T046 [P] [US3] Update UI to display winner + reason in Traditional Chinese in `src/components/GameInfo.tsx`
-- [ ] T047 [P] [US3] Integration test: capture-all ends match in
+- [x] T046 [P] [US3] Update UI to display winner + reason in Traditional Chinese in `src/components/GameInfo.tsx`
+- [x] T047 [P] [US3] Integration test: capture-all ends match in
   `tests/integration/components/BoardView.test.tsx`
-- [ ] T048 [P] [US3] Integration test: stalemate ends match in
+- [x] T048 [P] [US3] Integration test: stalemate ends match in
   `tests/integration/components/BoardView.test.tsx`
 
 **Checkpoint**: All user stories are independently functional

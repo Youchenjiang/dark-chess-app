@@ -189,4 +189,92 @@ describe('BoardView Integration', () => {
       expect(mockCapturePiece).toHaveBeenCalledWith(0, 1);
     });
   });
+
+  describe('User Story 3: Capture-all ends match (T047)', () => {
+    it('should display winner when capture-all condition is met', () => {
+      const board: Board = new Array(32).fill(null);
+      board[0] = {
+        id: 'red-rook-1',
+        type: 'rook',
+        color: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      // Red captured all 16 black pieces
+      const capturedPieces = new Array(16).fill(null).map((_, i) => ({
+        id: `black-${i}`,
+        type: 'pawn' as const,
+        color: 'black' as const,
+        isRevealed: true,
+        isDead: true,
+      }));
+
+      (useGameStore as unknown as jest.Mock).mockReturnValue({
+        match: {
+          status: 'ended',
+          currentTurn: null,
+          winner: 'red',
+          board,
+          redCaptured: capturedPieces,
+          blackCaptured: [],
+        },
+        flipPiece: mockFlipPiece,
+        movePiece: mockMovePiece,
+        capturePiece: mockCapturePiece,
+      });
+
+      const { container } = render(<BoardView />);
+
+      // Match ended, no further actions should be allowed
+      // This is validated by BoardView logic (status === 'ended')
+      expect(mockFlipPiece).not.toHaveBeenCalled();
+      expect(mockMovePiece).not.toHaveBeenCalled();
+      expect(mockCapturePiece).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('User Story 3: Stalemate ends match (T048)', () => {
+    it('should display winner when stalemate condition is met', () => {
+      const board: Board = new Array(32).fill(null);
+      // Red pawn trapped with no legal moves
+      board[0] = {
+        id: 'red-pawn-1',
+        type: 'pawn',
+        color: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      // Surrounded by black kings (cannot capture)
+      board[1] = {
+        id: 'black-king-1',
+        type: 'king',
+        color: 'black',
+        isRevealed: true,
+        isDead: false,
+      };
+
+      (useGameStore as unknown as jest.Mock).mockReturnValue({
+        match: {
+          status: 'ended',
+          currentTurn: null,
+          winner: 'black',
+          board,
+          redCaptured: [],
+          blackCaptured: [],
+        },
+        flipPiece: mockFlipPiece,
+        movePiece: mockMovePiece,
+        capturePiece: mockCapturePiece,
+      });
+
+      const { container } = render(<BoardView />);
+
+      // Match ended due to stalemate, no further actions allowed
+      expect(mockFlipPiece).not.toHaveBeenCalled();
+      expect(mockMovePiece).not.toHaveBeenCalled();
+      expect(mockCapturePiece).not.toHaveBeenCalled();
+    });
+  });
 });

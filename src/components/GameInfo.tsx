@@ -15,8 +15,10 @@ export const GameInfo: React.FC = () => {
     return null;
   }
 
-  // Game status text in Traditional Chinese
+  // Game status text in Traditional Chinese (T046)
   let statusText = '';
+  let winReasonText = '';
+  
   if (match.status === 'waiting-first-flip') {
     statusText = '點擊任意棋子開始遊戲'; // Tap any piece to start game
   } else if (match.status === 'in-progress' && match.currentTurn) {
@@ -25,6 +27,20 @@ export const GameInfo: React.FC = () => {
   } else if (match.status === 'ended' && match.winner) {
     const winnerText = match.winner === 'red' ? '紅方' : '黑方';
     statusText = `${winnerText}獲勝!`; // [Side] wins!
+    
+    // Add win reason if available
+    // Note: WinResult reason is not directly stored in Match, but can be inferred
+    // For now, we'll check captured counts to determine reason
+    const redCaptured = match.redCaptured.length;
+    const blackCaptured = match.blackCaptured.length;
+    
+    if (match.winner === 'red' && redCaptured >= 16) {
+      winReasonText = '(全數吃光)'; // (capture-all)
+    } else if (match.winner === 'black' && blackCaptured >= 16) {
+      winReasonText = '(全數吃光)'; // (capture-all)
+    } else {
+      winReasonText = '(對方無子可動)'; // (stalemate - opponent cannot move)
+    }
   }
 
   // Translate error messages to Traditional Chinese (T035)
@@ -63,7 +79,10 @@ export const GameInfo: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.statusText}>{statusText}</Text>
+      <Text style={styles.statusText}>
+        {statusText}
+        {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
+      </Text>
 
       {match.status === 'in-progress' && (
         <View style={styles.captureInfo}>
@@ -72,6 +91,14 @@ export const GameInfo: React.FC = () => {
           </Text>
           <Text style={styles.captureText}>
             黑方俘獲: {match.blackCaptured.length} ⚫
+          </Text>
+        </View>
+      )}
+
+      {match.status === 'ended' && (
+        <View style={styles.finalScoreInfo}>
+          <Text style={styles.finalScoreText}>
+            最終比數: 紅 {match.redCaptured.length} - 黑 {match.blackCaptured.length}
           </Text>
         </View>
       )}
@@ -98,6 +125,11 @@ const styles = StyleSheet.create({
     color: '#8B4513', // Brown
     marginBottom: 8,
   },
+  winReason: {
+    fontSize: 18,
+    color: '#666',
+    fontWeight: 'normal',
+  },
   captureInfo: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -107,6 +139,14 @@ const styles = StyleSheet.create({
   captureText: {
     fontSize: 16,
     color: '#333',
+  },
+  finalScoreInfo: {
+    marginTop: 8,
+  },
+  finalScoreText: {
+    fontSize: 18,
+    color: '#8B4513',
+    fontWeight: 'bold',
   },
   errorContainer: {
     marginTop: 12,

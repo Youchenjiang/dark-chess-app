@@ -109,30 +109,30 @@ not change board.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T026 [P] [US2] Unit tests for move validation (adjacent only, empty destination, turn ownership) in
+- [x] T026 [P] [US2] Unit tests for move validation (adjacent only, empty destination, turn ownership) in
   `tests/unit/core/GameEngine.test.ts`
-- [ ] T027 [P] [US2] Unit tests for standard rank capture (attacker rank >= target rank) in
+- [x] T027 [P] [US2] Unit tests for standard rank capture (attacker rank >= target rank) in
   `tests/unit/core/GameEngine.test.ts`
-- [ ] T028 [P] [US2] Unit tests for King vs Pawn special rule in `tests/unit/core/GameEngine.test.ts`
-- [ ] T029 [P] [US2] Unit tests for Cannon capture screen rule in `tests/unit/core/GameEngine.test.ts`
+- [x] T028 [P] [US2] Unit tests for King vs Pawn special rule in `tests/unit/core/GameEngine.test.ts`
+- [x] T029 [P] [US2] Unit tests for Cannon capture screen rule in `tests/unit/core/GameEngine.test.ts`
   (exactly one screen, reject 0 screens, reject 2+ screens, reject adjacent capture)
-- [ ] T030 [P] [US2] Unit tests ensuring illegal actions do not mutate state in
+- [x] T030 [P] [US2] Unit tests ensuring illegal actions do not mutate state in
   `tests/unit/core/GameEngine.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T031 [US2] Implement `validateMove()` + `executeMove()` in `src/core/GameEngine.ts`
-- [ ] T032 [US2] Implement `validateCapture()` + `executeCapture()` (rank, King/Pawn, Cannon) in
+- [x] T031 [US2] Implement `validateMove()` + `executeMove()` in `src/core/GameEngine.ts`
+- [x] T032 [US2] Implement `validateCapture()` + `executeCapture()` (rank, King/Pawn, Cannon) in
   `src/core/GameEngine.ts`
-- [ ] T033 [US2] Implement store actions `movePiece()` and `capturePiece()` in `src/store/gameStore.ts`
-- [ ] T034 [US2] Add selection UX and action resolution (flip/move/capture) in `src/components/BoardView.tsx`
-- [ ] T035 [P] [US2] Add user-visible error messages in Traditional Chinese for illegal actions in
+- [x] T033 [US2] Implement store actions `movePiece()` and `capturePiece()` in `src/store/gameStore.ts`
+- [x] T034 [US2] Add selection UX and action resolution (flip/move/capture) in `src/components/BoardView.tsx`
+- [x] T035 [P] [US2] Add user-visible error messages in Traditional Chinese for illegal actions in
   `src/components/GameInfo.tsx`
-- [ ] T036 [P] [US2] Integration test: move a piece updates board in
+- [x] T036 [P] [US2] Integration test: move a piece updates board in
   `tests/integration/components/BoardView.test.tsx`
-- [ ] T037 [P] [US2] Integration test: illegal action shows error and does not change board in
+- [x] T037 [P] [US2] Integration test: illegal action shows error and does not change board in
   `tests/integration/components/BoardView.test.tsx`
-- [ ] T038 [P] [US2] Integration test: capture removes target and moves attacker in
+- [x] T038 [P] [US2] Integration test: capture removes target and moves attacker in
   `tests/integration/components/BoardView.test.tsx`
 
 **Checkpoint**: User Stories 1 AND 2 both work independently

@@ -7,9 +7,10 @@ import { Board, Piece } from './types';
 
 /**
  * Board dimensions
+ * Portrait mode: 8 rows (vertical) × 4 columns (horizontal)
  */
-export const BOARD_ROWS = 4;
-export const BOARD_COLS = 8;
+export const BOARD_ROWS = 8;
+export const BOARD_COLS = 4;
 export const BOARD_SIZE = BOARD_ROWS * BOARD_COLS; // 32
 
 /**
@@ -111,4 +112,47 @@ export function hasExactlyOneScreen(
   targetIndex: number
 ): boolean {
   return countPiecesBetween(board, cannonIndex, targetIndex) === 1;
+}
+
+/**
+ * Check if two indices are in the same row or column (straight line)
+ */
+export function isInStraightLine(index1: number, index2: number): boolean {
+  if (!isValidIndex(index1) || !isValidIndex(index2)) {
+    return false;
+  }
+  const { row: row1, col: col1 } = indexToRowCol(index1);
+  const { row: row2, col: col2 } = indexToRowCol(index2);
+  
+  // Same row or same column
+  return row1 === row2 || col1 === col2;
+}
+
+/**
+ * Get all indices in the same row or column as the given index
+ * Used for Cannon capture target search
+ */
+export function getStraightLineIndices(startIndex: number): number[] {
+  if (!isValidIndex(startIndex)) {
+    return [];
+  }
+  
+  const { row, col } = indexToRowCol(startIndex);
+  const indices: number[] = [];
+  
+  // Same row
+  for (let c = 0; c < BOARD_COLS; c++) {
+    if (c !== col) {
+      indices.push(rowColToIndex(row, c));
+    }
+  }
+  
+  // Same column
+  for (let r = 0; r < BOARD_ROWS; r++) {
+    if (r !== row) {
+      indices.push(rowColToIndex(r, col));
+    }
+  }
+  
+  return indices;
 }

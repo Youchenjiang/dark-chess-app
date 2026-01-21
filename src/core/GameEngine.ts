@@ -10,7 +10,14 @@ import {
   LegalMoveSet,
   PieceColor,
 } from './types';
-import { isValidIndex, isAdjacent, hasExactlyOneScreen, getLineIndices } from './boardUtils';
+import { 
+  isValidIndex, 
+  isAdjacent, 
+  hasExactlyOneScreen, 
+  getLineIndices, 
+  isInStraightLine,
+  getStraightLineIndices 
+} from './boardUtils';
 import {
   canCaptureByRank,
   isKingVsPawn,
@@ -176,15 +183,31 @@ export function validateCapture(
     return { isValid: false, error: 'Target is own piece' };
   }
 
-  // Check if adjacent (required for all captures)
-  if (!isAdjacent(fromIndex, toIndex)) {
-    return { isValid: false, error: 'Target not adjacent' };
-  }
-
   // Special rule: Cannon capture
   if (isCannonCapture(attacker.type)) {
+    // Cannon must jump over exactly one piece (screen) to capture
+    // Target must be in a straight line (same row or column)
+    if (!isInStraightLine(fromIndex, toIndex)) {
+      return { isValid: false, error: 'Cannon target not in straight line' };
+    }
+    
     // Cannon cannot capture adjacent piece directly
-    return { isValid: false, error: 'Cannon cannot capture adjacent piece' };
+    if (isAdjacent(fromIndex, toIndex)) {
+      return { isValid: false, error: 'Cannon cannot capture adjacent piece' };
+    }
+    
+    // Must have exactly one screen between Cannon and target
+    if (!hasExactlyOneScreen(match.board, fromIndex, toIndex)) {
+      return { isValid: false, error: 'Cannon requires exactly one screen to capture' };
+    }
+    
+    // Cannon can capture any piece (ignores rank)
+    return { isValid: true };
+  }
+
+  // For non-Cannon pieces, target must be adjacent
+  if (!isAdjacent(fromIndex, toIndex)) {
+    return { isValid: false, error: 'Target not adjacent' };
   }
 
   // Special rule: King vs Pawn
@@ -321,7 +344,7 @@ export function getLegalMoves(match: Match): LegalMoveSet {
       continue;
     }
 
-    // Check adjacent cells for moves and captures
+    // Check adjacent cells for moves
     for (let toIndex = 0; toIndex < match.board.length; toIndex++) {
       if (!isAdjacent(fromIndex, toIndex)) {
         continue;
@@ -335,14 +358,23 @@ export function getLegalMoves(match: Match): LegalMoveSet {
           moves.push({ fromIndex, toIndex });
         }
       } else if (target.isRevealed && target.color !== piece.color) {
-        // Enemy piece - potential capture
-        // Note: Cannon capture requires special validation (screen check)
-        if (isCannonCapture(piece.type)) {
-          // Cannon capture validation (check screen)
-          if (hasExactlyOneScreen(match.board, fromIndex, toIndex)) {
+        // Enemy piece - potential capture (non-Cannon)
+        if (!isCannonCapture(piece.type)) {
+          const captureValidation = validateCapture(match, fromIndex, toIndex);
+          if (captureValidation.isValid) {
             captures.push({ fromIndex, toIndex });
           }
-        } else {
+        }
+      }
+    }
+
+    // Special handling for Cannon captures (can jump to non-adjacent targets)
+    if (isCannonCapture(piece.type)) {
+      const straightLineIndices = getStraightLineIndices(fromIndex);
+      for (const toIndex of straightLineIndices) {
+        const target = match.board[toIndex];
+        if (target !== null && target.isRevealed && target.color !== piece.color) {
+          // Enemy piece in straight line - check if valid Cannon capture
           const captureValidation = validateCapture(match, fromIndex, toIndex);
           if (captureValidation.isValid) {
             captures.push({ fromIndex, toIndex });

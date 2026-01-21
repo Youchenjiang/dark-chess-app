@@ -1,6 +1,6 @@
 /**
  * BoardView - Main game board component (T023)
- * Renders 4x8 grid and handles piece interactions (flip, move, capture)
+ * Renders 8x4 grid (portrait) and handles piece interactions (flip, move, capture)
  */
 
 import React, { useState } from 'react';
@@ -82,7 +82,7 @@ export const BoardView: React.FC = () => {
     setSelectedIndex(null);
   };
 
-  // Render board as 4 rows × 8 columns
+  // Render board as 8 rows × 4 columns (portrait layout)
   const renderBoard = () => {
     const rows: JSX.Element[] = [];
 

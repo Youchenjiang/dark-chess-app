@@ -29,7 +29,7 @@ describe('BoardView Integration', () => {
           winner: null,
           board: new Array(32).fill(null).map((_, i) => ({
             id: `piece-${i}`,
-            type: 'pawn',
+            type: 'Pawn',
             color: i % 2 === 0 ? 'red' : 'black',
             isRevealed: false,
             isDead: false,
@@ -62,7 +62,7 @@ describe('BoardView Integration', () => {
       const board: Board = new Array(32).fill(null);
       board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -103,14 +103,14 @@ describe('BoardView Integration', () => {
       const board: Board = new Array(32).fill(null);
       board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
       };
       board[1] = {
         id: 'black-king-1',
-        type: 'king',
+        type: 'King',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -147,14 +147,14 @@ describe('BoardView Integration', () => {
       const board: Board = new Array(32).fill(null);
       board[0] = {
         id: 'red-rook-1',
-        type: 'rook',
+        type: 'Rook',
         color: 'red',
         isRevealed: true,
         isDead: false,
       };
       board[1] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -195,7 +195,7 @@ describe('BoardView Integration', () => {
       const board: Board = new Array(32).fill(null);
       board[0] = {
         id: 'red-rook-1',
-        type: 'rook',
+        type: 'Rook',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -204,7 +204,7 @@ describe('BoardView Integration', () => {
       // Red captured all 16 black pieces
       const capturedPieces = new Array(16).fill(null).map((_, i) => ({
         id: `black-${i}`,
-        type: 'pawn' as const,
+        type: 'Pawn' as const,
         color: 'black' as const,
         isRevealed: true,
         isDead: true,
@@ -240,7 +240,7 @@ describe('BoardView Integration', () => {
       // Red pawn trapped with no legal moves
       board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -249,7 +249,7 @@ describe('BoardView Integration', () => {
       // Surrounded by black kings (cannot capture)
       board[1] = {
         id: 'black-king-1',
-        type: 'king',
+        type: 'King',
         color: 'black',
         isRevealed: true,
         isDead: false,

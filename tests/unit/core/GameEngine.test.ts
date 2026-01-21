@@ -159,7 +159,7 @@ describe('GameEngine', () => {
       // Place a piece at index 1
       inProgressMatch.board[1] = {
         id: 'piece-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -175,7 +175,7 @@ describe('GameEngine', () => {
       const opponentColor: Piece['color'] = inProgressMatch.currentTurn === 'red' ? 'black' : 'red';
       inProgressMatch.board[8] = {
         id: 'opponent-piece',
-        type: 'pawn',
+        type: 'Pawn',
         color: opponentColor,
         isRevealed: true,
         isDead: false,
@@ -198,7 +198,7 @@ describe('GameEngine', () => {
       // Place a Rook (rank 4) at index 0
       inProgressMatch.board[0] = {
         id: 'red-rook-1',
-        type: 'rook',
+        type: 'Rook',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -207,7 +207,7 @@ describe('GameEngine', () => {
       // Place a Pawn (rank 1) at index 1 (adjacent)
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -223,7 +223,7 @@ describe('GameEngine', () => {
       // Place a Pawn (rank 1) at index 0
       inProgressMatch.board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -232,7 +232,7 @@ describe('GameEngine', () => {
       // Place a Rook (rank 4) at index 1 (adjacent)
       inProgressMatch.board[1] = {
         id: 'black-rook-1',
-        type: 'rook',
+        type: 'Rook',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -258,7 +258,7 @@ describe('GameEngine', () => {
       // Place King at index 0
       inProgressMatch.board[0] = {
         id: 'red-king-1',
-        type: 'king',
+        type: 'King',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -267,7 +267,7 @@ describe('GameEngine', () => {
       // Place Pawn at index 1 (adjacent)
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -282,7 +282,7 @@ describe('GameEngine', () => {
       // Place Pawn at index 0
       inProgressMatch.board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -291,7 +291,7 @@ describe('GameEngine', () => {
       // Place King at index 1 (adjacent)
       inProgressMatch.board[1] = {
         id: 'black-king-1',
-        type: 'king',
+        type: 'King',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -314,7 +314,7 @@ describe('GameEngine', () => {
       // Place Cannon at index 0
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
-        type: 'cannon',
+        type: 'Cannon',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -323,7 +323,7 @@ describe('GameEngine', () => {
       // Place enemy at index 1 (adjacent, no screen)
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -338,7 +338,7 @@ describe('GameEngine', () => {
       // Place Cannon at index 0
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
-        type: 'cannon',
+        type: 'Cannon',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -347,7 +347,7 @@ describe('GameEngine', () => {
       // Place screen at index 1
       inProgressMatch.board[1] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -356,7 +356,7 @@ describe('GameEngine', () => {
       // Place enemy at index 2 (with one screen)
       inProgressMatch.board[2] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -374,7 +374,7 @@ describe('GameEngine', () => {
       // Place Cannon at index 0
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
-        type: 'cannon',
+        type: 'Cannon',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -383,7 +383,7 @@ describe('GameEngine', () => {
       // Place screen 1 at index 1
       inProgressMatch.board[1] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -392,7 +392,7 @@ describe('GameEngine', () => {
       // Place screen 2 at index 2
       inProgressMatch.board[2] = {
         id: 'red-pawn-2',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -401,7 +401,7 @@ describe('GameEngine', () => {
       // Place enemy at index 3 (with 2 screens)
       inProgressMatch.board[3] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -422,7 +422,7 @@ describe('GameEngine', () => {
         currentTurn: 'red',
         redCaptured: new Array(16).fill(null).map((_, i) => ({
           id: `black-${i}`,
-          type: 'pawn',
+          type: 'Pawn',
           color: 'black' as const,
           isRevealed: true,
           isDead: true,
@@ -444,7 +444,7 @@ describe('GameEngine', () => {
         redCaptured: [],
         blackCaptured: new Array(16).fill(null).map((_, i) => ({
           id: `red-${i}`,
-          type: 'pawn',
+          type: 'Pawn',
           color: 'red' as const,
           isRevealed: true,
           isDead: true,
@@ -464,7 +464,7 @@ describe('GameEngine', () => {
         currentTurn: 'red',
         redCaptured: new Array(10).fill(null).map((_, i) => ({
           id: `black-${i}`,
-          type: 'pawn',
+          type: 'Pawn',
           color: 'black' as const,
           isRevealed: true,
           isDead: true,
@@ -506,7 +506,7 @@ describe('GameEngine', () => {
       // Place red piece at 0, black piece at 1
       inProgressMatch.board[0] = {
         id: 'red-rook-1',
-        type: 'rook',
+        type: 'Rook',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -514,7 +514,7 @@ describe('GameEngine', () => {
 
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -557,7 +557,7 @@ describe('GameEngine', () => {
       // Place red pawn at corner (index 0)
       stalemateMatch.board[0] = {
         id: 'red-pawn-1',
-        type: 'pawn',
+        type: 'Pawn',
         color: 'red',
         isRevealed: true,
         isDead: false,
@@ -566,7 +566,7 @@ describe('GameEngine', () => {
       // Surround with black pieces (adjacent at indices 1 and 8)
       stalemateMatch.board[1] = {
         id: 'black-king-1',
-        type: 'king',
+        type: 'King',
         color: 'black',
         isRevealed: true,
         isDead: false,
@@ -574,7 +574,7 @@ describe('GameEngine', () => {
 
       stalemateMatch.board[8] = {
         id: 'black-king-2',
-        type: 'king',
+        type: 'King',
         color: 'black',
         isRevealed: true,
         isDead: false,

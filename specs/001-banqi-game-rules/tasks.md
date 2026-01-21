@@ -174,12 +174,12 @@ rejected.
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T049 [P] Enforce 100% Jest coverage thresholds for `src/core/**` in `jest.config.js`
-- [ ] T050 [P] Add minimalist wooden/traditional styling polish in `src/components/BoardView.tsx` and
+- [x] T049 [P] Enforce 100% Jest coverage thresholds for `src/core/**` in `jest.config.js`
+- [x] T050 [P] Add minimalist wooden/traditional styling polish in `src/components/BoardView.tsx` and
   `src/components/GridCell.tsx`
-- [ ] T051 [P] Add piece visual styling for face-down vs face-up in `src/components/PieceComponent.tsx`
-- [ ] T052 [P] Run and fix all unit tests for core logic (`npm test`) and verify coverage report
-- [ ] T053 [P] Run and fix integration tests (`npm test` or dedicated script) in `tests/integration/**`
+- [x] T051 [P] Add piece visual styling for face-down vs face-up in `src/components/PieceComponent.tsx`
+- [x] T052 [P] Run and fix all unit tests for core logic (`npm test`) and verify coverage report
+- [x] T053 [P] Run and fix integration tests (`npm test` or dedicated script) in `tests/integration/**`
 - [ ] T054 [P] Validate `specs/001-banqi-game-rules/quickstart.md` steps against the real repo setup and
   update the doc if needed
 

@@ -147,6 +147,9 @@ describe('GameEngine', () => {
     });
 
     it('should reject move to non-adjacent cell', () => {
+      // Ensure index 8 is empty first
+      inProgressMatch.board[8] = null;
+      
       const result = validateMove(inProgressMatch, 0, 8); // Not adjacent (different row)
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Destination not adjacent');

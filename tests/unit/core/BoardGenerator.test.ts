@@ -3,8 +3,9 @@
  */
 
 import { createInitialMatch } from '../../../src/core/BoardGenerator';
-import { BOARD_SIZE, TOTAL_PIECES_PER_COLOR, PIECE_COUNTS } from '../../../src/core/rules';
+import { TOTAL_PIECES_PER_COLOR, PIECE_COUNTS } from '../../../src/core/rules';
 import { PieceType } from '../../../src/core/types';
+import { BOARD_SIZE } from '../../../src/core/boardUtils';
 
 describe('BoardGenerator', () => {
   describe('createInitialMatch', () => {

@@ -4,12 +4,23 @@
  * All UI text in Traditional Chinese
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 
 export const GameInfo: React.FC = () => {
   const { match, error, clearError } = useGameStore();
+
+  // Auto-dismiss error after 3 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        clearError();
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, clearError]);
 
   if (!match) {
     return null;
@@ -191,23 +202,27 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   errorContainer: {
-    marginTop: 12,
-    padding: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#FFEBEE', // Light red
-    borderRadius: 8,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#E53935', // Red
+    maxWidth: '90%',
+    alignSelf: 'center',
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#C62828', // Dark red
     fontWeight: 'bold',
     textAlign: 'center',
   },
   errorDismiss: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#757575', // Gray
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
 });

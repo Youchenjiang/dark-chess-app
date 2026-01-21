@@ -73,25 +73,25 @@ side assignment + current turn are set.
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T015 [P] [US1] Unit tests for BoardGenerator piece creation + shuffle invariants in
+- [x] T015 [P] [US1] Unit tests for BoardGenerator piece creation + shuffle invariants in
   `tests/unit/core/BoardGenerator.test.ts`
-- [ ] T016 [P] [US1] Unit tests for first flip side assignment in `tests/unit/core/GameEngine.test.ts`
+- [x] T016 [P] [US1] Unit tests for first flip side assignment in `tests/unit/core/GameEngine.test.ts`
   (waiting-first-flip → in-progress)
-- [ ] T017 [P] [US1] Unit tests for flip validation edge cases in `tests/unit/core/GameEngine.test.ts`
+- [x] T017 [P] [US1] Unit tests for flip validation edge cases in `tests/unit/core/GameEngine.test.ts`
   (invalid index, already revealed, empty cell, match ended)
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Implement `createInitialMatch()` and shuffle placement in `src/core/BoardGenerator.ts`
-- [ ] T019 [US1] Implement `validateFlip()` + `executeFlip()` in `src/core/GameEngine.ts`
-- [ ] T020 [US1] Implement store actions `newMatch()` and `flipPiece()` in `src/store/gameStore.ts`
-- [ ] T021 [P] [US1] Implement `PieceComponent` (face-down vs face-up display) in
+- [x] T018 [US1] Implement `createInitialMatch()` and shuffle placement in `src/core/BoardGenerator.ts`
+- [x] T019 [US1] Implement `validateFlip()` + `executeFlip()` in `src/core/GameEngine.ts`
+- [x] T020 [US1] Implement store actions `newMatch()` and `flipPiece()` in `src/store/gameStore.ts`
+- [x] T021 [P] [US1] Implement `PieceComponent` (face-down vs face-up display) in
   `src/components/PieceComponent.tsx`
-- [ ] T022 [P] [US1] Implement tappable grid cell in `src/components/GridCell.tsx`
-- [ ] T023 [US1] Implement board rendering + flip interaction in `src/components/BoardView.tsx`
-- [ ] T024 [P] [US1] Implement minimal game info display (turn/side) in Traditional Chinese in
+- [x] T022 [P] [US1] Implement tappable grid cell in `src/components/GridCell.tsx`
+- [x] T023 [US1] Implement board rendering + flip interaction in `src/components/BoardView.tsx`
+- [x] T024 [P] [US1] Implement minimal game info display (turn/side) in Traditional Chinese in
   `src/components/GameInfo.tsx`
-- [ ] T025 [P] [US1] Integration test: tap to flip reveals a piece in
+- [x] T025 [P] [US1] Integration test: tap to flip reveals a piece in
   `tests/integration/components/BoardView.test.tsx`
 
 **Checkpoint**: User Story 1 is fully functional and testable independently

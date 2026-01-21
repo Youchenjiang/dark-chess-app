@@ -45,7 +45,12 @@ export const GridCell: React.FC<GridCellProps> = ({ piece, index, onTap, isSelec
   }
 
   return (
-    <TouchableOpacity style={cellStyle} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      testID={`cell-${index}`}
+      style={cellStyle}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
       <PieceComponent piece={piece} />
     </TouchableOpacity>
   );

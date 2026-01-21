@@ -84,15 +84,15 @@ describe('BoardView Integration', () => {
     });
 
     it('should select piece and call movePiece when tapping empty cell', () => {
-      const { getByText, UNSAFE_getAllByType } = render(<BoardView />);
+      const { getByText, getByTestId } = render(<BoardView />);
 
       // Tap on revealed red pawn to select
       const redPawn = getByText('兵');
       fireEvent.press(redPawn.parent!);
 
       // Tap on adjacent empty cell (index 1)
-      const cells = UNSAFE_getAllByType('RCTTouchableOpacity' as any);
-      fireEvent.press(cells[1]);
+      const emptyCell = getByTestId('cell-1');
+      fireEvent.press(emptyCell);
 
       expect(mockMovePiece).toHaveBeenCalledWith(0, 1);
     });
@@ -176,15 +176,15 @@ describe('BoardView Integration', () => {
     });
 
     it('should call capturePiece when selecting piece and tapping enemy piece', () => {
-      const { getByText, UNSAFE_getAllByType } = render(<BoardView />);
+      const { getByText, getByTestId } = render(<BoardView />);
 
       // Tap on red rook to select
       const redRook = getByText('俥');
       fireEvent.press(redRook.parent!);
 
       // Tap on adjacent black pawn (index 1)
-      const cells = UNSAFE_getAllByType('RCTTouchableOpacity' as any);
-      fireEvent.press(cells[1]);
+      const enemyCell = getByTestId('cell-1');
+      fireEvent.press(enemyCell);
 
       expect(mockCapturePiece).toHaveBeenCalledWith(0, 1);
     });
@@ -224,7 +224,7 @@ describe('BoardView Integration', () => {
         capturePiece: mockCapturePiece,
       });
 
-      const { container } = render(<BoardView />);
+      render(<BoardView />);
 
       // Match ended, no further actions should be allowed
       // This is validated by BoardView logic (status === 'ended')
@@ -269,7 +269,7 @@ describe('BoardView Integration', () => {
         capturePiece: mockCapturePiece,
       });
 
-      const { container } = render(<BoardView />);
+      render(<BoardView />);
 
       // Match ended due to stalemate, no further actions allowed
       expect(mockFlipPiece).not.toHaveBeenCalled();

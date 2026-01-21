@@ -77,12 +77,24 @@ export const GameInfo: React.FC = () => {
     return translations[errorMsg] || errorMsg;
   };
 
+  // Determine turn indicator styling
+  const getTurnStyle = () => {
+    if (match.status !== 'in-progress' || !match.currentTurn) {
+      return styles.statusText;
+    }
+    return match.currentTurn === 'red' 
+      ? [styles.statusText, styles.turnIndicatorRed] 
+      : [styles.statusText, styles.turnIndicatorBlack];
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.statusText}>
-        {statusText}
-        {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
-      </Text>
+      <View style={match.status === 'in-progress' && match.currentTurn ? styles.turnIndicatorContainer : {}}>
+        <Text style={getTurnStyle()}>
+          {statusText}
+          {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
+        </Text>
+      </View>
 
       {match.status === 'in-progress' && (
         <View style={styles.captureInfo}>
@@ -119,11 +131,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8DC', // Cornsilk (light yellow)
     alignItems: 'center',
   },
+  turnIndicatorContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
   statusText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#8B4513', // Brown
     marginBottom: 8,
+  },
+  turnIndicatorRed: {
+    color: '#C62828', // Deep red
+    fontSize: 28,
+    borderWidth: 3,
+    borderColor: '#C62828',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFEBEE', // Light red background
+    overflow: 'hidden',
+  },
+  turnIndicatorBlack: {
+    color: '#1A1A1A', // Near black
+    fontSize: 28,
+    borderWidth: 3,
+    borderColor: '#1A1A1A',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#E0E0E0', // Light gray background
+    overflow: 'hidden',
   },
   winReason: {
     fontSize: 18,

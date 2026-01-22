@@ -12,14 +12,15 @@
 
 **Three Kingdoms Dark Chess** (三國暗棋 / Sān Guó Àn Qí) is a **3-player variant** of Classic Dark Chess featuring:
 - 3 factions/teams with asymmetric piece distribution (12+10+10 pieces)
-- **45 intersection points** on a 5x9 grid (intersections of 4x8 grid lines)
-- 13 empty intersection points (45 total - 32 pieces)
-- Alliance-based gameplay with elimination victory
+- **Portrait-oriented board**: **5 columns × 9 rows** (45 intersection points) aligned with phone's long edge
+- **"Four Corners" (四角) initial setup**: Pieces arranged in 4 clusters (2×4 blocks) at corners, leaving center aisle empty
+- **Dynamic faction assignment**: Players receive faction based on **first flip rule** (not pre-assigned)
+- **"Army Chess" (軍棋) style movement**: Ministers, Horses move along grid lines **without blocking** (no 馬腳/象眼 checks)
 - No rank hierarchy (any piece captures any piece)
-- Modified movement rules (Generals move like Rooks, Ministers jump freely)
+- Modified movement rules (Generals move infinite like Rooks, Ministers/Horses jump freely)
 - **Draw rule**: 60 consecutive moves without capture results in a draw
 
-**Market Positioning**: This is our **unique selling proposition** - no other mobile Dark Chess app offers 3-player variants.
+**Market Positioning**: This is our **unique selling proposition** - no other mobile Dark Chess app offers 3-player variants with "Four Corners" Army Chess mechanics.
 
 ---
 
@@ -36,8 +37,12 @@ As a player, I want to **select between Classic (2-player) and Three Kingdoms (3
 **Acceptance Scenarios**:
 
 1. **Given** the app home screen, **When** I tap "Select Mode", **Then** I see options for "Classic Dark Chess (經典暗棋)" and "Three Kingdoms (三國暗棋)"
-2. **Given** I selected "Three Kingdoms" mode, **When** the game starts, **Then** the board displays **32 face-down pieces on 45 intersection points** (5x9 grid) with 3-player turn indicators
-3. **Given** I am in Three Kingdoms mode, **When** I view the board, **Then** I see **13 empty intersection points** clearly distinguished from occupied positions
+2. **Given** I selected "Three Kingdoms" mode, **When** the game starts, **Then** the board displays:
+   - **Portrait-oriented 5×9 grid** (aligned with phone's long edge)
+   - **32 face-down pieces** arranged in **4 corner clusters** (2×4 blocks)
+   - **13 empty intersection points** forming a central "cross" aisle
+   - Turn indicator showing "Player 1's Turn" (no pre-assigned factions)
+3. **Given** I am in Three Kingdoms mode, **When** I view the board, **Then** I see pieces clustered at **four corners** with the center clearly empty
 4. **Given** I am in Three Kingdoms mode, **When** I return to home and select "Classic", **Then** the game switches to 2-player Classic rules with 8x4 grid cells
 
 ---
@@ -52,13 +57,18 @@ As a player, I want to **play Three Kingdoms Dark Chess with 2 other players loc
 
 **Acceptance Scenarios**:
 
-1. **Given** a new Three Kingdoms match, **When** Player A flips the first piece, **Then** that piece is revealed, the draw counter is set to 60, and Player B takes the next turn
-2. **Given** Player A controls a revealed Red Rook, **When** Player A moves it 3 steps straight along grid lines, **Then** the Rook moves successfully, the draw counter decrements by 1 (59 remaining), and Player B's turn begins
-3. **Given** Player A's General is adjacent to Player B's Soldier along a grid line, **When** Player A captures with the General, **Then** the capture succeeds (no rank hierarchy), Player B's Soldier is eliminated, and the draw counter **resets to 60**
-4. **Given** Player A's Cannon has exactly one piece between it and Player C's Horse along a straight line, **When** Player A uses Cannon to jump-capture, **Then** Player C's Horse is captured and the draw counter **resets to 60**
-5. **Given** Player B has been eliminated, **When** Player A finishes their turn, **Then** the turn passes directly to Player C (Player B is **removed from turn rotation**)
-6. **Given** 59 consecutive non-capture moves have occurred, **When** Player A makes a non-capture move, **Then** the draw counter reaches 0 and the game **ends immediately in a draw**
-7. **Given** all of Team B and Team C pieces are eliminated, **When** only Team A has pieces remaining, **Then** Player A/Team A wins the game
+1. **Given** a new Three Kingdoms match (pieces in four corners), **When** Player 1 flips the first piece (e.g., Red Rook), **Then**:
+   - That piece is revealed with RED color
+   - Player 1 is **assigned to Red faction** (dynamic assignment complete)
+   - Draw counter is set to 60
+   - Turn indicator changes to "Player 2's Turn" (not yet assigned)
+2. **Given** Player 1 (Red faction) controls a revealed Rook, **When** Player 1 moves it 3 steps straight along grid lines (Army Chess style), **Then** the Rook slides successfully (no blocking), draw counter decrements to 59, and Player 2's turn begins
+3. **Given** Player 2 flips a BLACK Minister, **When** the piece is revealed, **Then** Player 2 is **assigned to Black faction**, and turn passes to Player 3 (not yet assigned)
+4. **Given** Player 1's General is adjacent to Player 2's Soldier along a grid line, **When** Player 1 captures with the General, **Then** the capture succeeds (no rank hierarchy), Player 2's Soldier is eliminated, and the draw counter **resets to 60**
+5. **Given** Player 3 flips a GREEN General (Team 1 - Generals' Army), **When** the piece is revealed, **Then** Player 3 is **assigned to Green faction** (all 3 factions now assigned)
+6. **Given** Player 2 (Black faction) has been eliminated, **When** Player 1 finishes their turn, **Then** the turn passes directly to Player 3 (Player 2 is **removed from turn rotation**)
+7. **Given** 59 consecutive non-capture moves have occurred, **When** Player 1 makes a non-capture move, **Then** the draw counter reaches 0 and the game **ends immediately in a draw**
+8. **Given** all Black and Green pieces are eliminated, **When** only Red faction has pieces remaining, **Then** Player 1 (Red) wins the game
 
 ---
 
@@ -109,17 +119,26 @@ As a player, I want to **distinguish between the 3 teams visually** (Team 1: Gen
 - **FR-004**: System MUST NOT mix rules between modes (strict separation of Classic vs Three Kingdoms logic)
 
 **Three Kingdoms Board & Setup**:
-- **FR-005**: Board MUST have **45 intersection points** arranged in a **5x9 grid** (5 points width × 9 points height = intersections of 4x8 grid lines)
-- **FR-006**: System MUST place **32 pieces randomly** on these 45 intersections, leaving **13 empty spots**
-- **FR-007**: System MUST shuffle pieces randomly before placement across all 45 positions
+- **FR-005**: Board MUST have **45 intersection points** arranged in a **Portrait 5×9 grid** (5 columns wide × 9 rows tall) aligned with phone's **long edge** (vertical orientation)
+- **FR-006**: System MUST place **32 pieces in "Four Corners" (四角) layout**:
+  - **Top-Left corner**: 2×4 block (8 pieces)
+  - **Top-Right corner**: 2×4 block (8 pieces)
+  - **Bottom-Left corner**: 2×4 block (8 pieces)
+  - **Bottom-Right corner**: 2×4 block (8 pieces)
+  - **Center aisle**: 13 empty intersections forming a "cross" pattern (central row 4 + central column 2)
+- **FR-007**: System MUST **shuffle the 32 pieces** before distributing them into the 4 corner blocks (randomize piece assignment within corners)
 - **FR-008**: All 32 pieces MUST be placed face-down at game start
-- **FR-009**: Empty intersection points MUST be visually distinguishable from occupied positions
+- **FR-009**: Empty intersection points (13 central positions) MUST be visually distinguishable as empty dots or grid markers
 
-**Three Kingdoms Players & Turns**:
-- **FR-010**: System MUST support 3 players/factions (Team A, Team B, Team C)
-- **FR-011**: System MUST rotate turns in sequence: Player A → Player B → Player C → Player A
-- **FR-012**: When a player is eliminated, system MUST **immediately remove them from turn rotation** (e.g., A → C → A if B eliminated)
-- **FR-013**: System MUST distribute pieces correctly: Team 1 (12 pieces), Team 2 (10 pieces), Team 3 (10 pieces)
+**Three Kingdoms Players & Turns (Dynamic Faction Assignment)**:
+- **FR-010**: System MUST support **3 players with dynamic faction assignment**:
+  - Game starts with "Player 1", "Player 2", "Player 3" (no pre-assigned factions)
+  - **First Flip Rule**: When a player flips their first piece, they are **assigned to that piece's faction** (Red/Black/Green)
+  - If Player 2 flips a piece from the same faction as Player 1, turn passes but Player 2 is **NOT assigned yet** (retry on next turn)
+  - Continue until all 3 players are assigned to distinct factions
+- **FR-011**: System MUST rotate turns in sequence: Player 1 → Player 2 → Player 3 → Player 1
+- **FR-012**: When a player's faction is eliminated, system MUST **immediately remove them from turn rotation** (e.g., P1 → P3 → P1 if P2 eliminated)
+- **FR-013**: System MUST distribute pieces correctly across the 3 factions: **Green/Team 1 (12 pieces), Red/Team 2 (10 pieces), Black/Team 3 (10 pieces)**, shuffled into 4 corner blocks
 
 **Draw Counter (Mandatory)**:
 - **FR-014**: System MUST initialize a "moves without capture" counter to **60** at game start
@@ -128,45 +147,61 @@ As a player, I want to **distinguish between the 3 teams visually** (Team 1: Gen
 - **FR-017**: System MUST **end the game as a draw** when the counter reaches 0
 - **FR-018**: UI MUST display the current counter value prominently (e.g., "Moves Until Draw: 45")
 
-**Piece Movement (Three Kingdoms Specific)**:
-- **FR-019**: Generals (帥/將) MUST move infinite steps along straight lines (like Rooks), NOT 1 step
-- **FR-020**: Ministers (相/象) MUST jump 2 steps diagonally (田字 pattern) WITHOUT blocking checks
-- **FR-021**: Horses (傌/馬) MUST move in Knight L-shape WITHOUT blocking checks
-- **FR-022**: Soldiers, Advisors, Rooks, Cannons MUST move as in Classic rules
-- **FR-023**: All pieces MUST move along grid lines between intersection points
-- **FR-024**: Pieces CAN move to any empty intersection point (13 empty spots are valid destinations)
+**Piece Movement (Army Chess / 軍棋 Style - No Blocking)**:
+- **FR-019**: Generals (帥/將) MUST move **infinite steps** along straight lines (like Rooks/Rails), NOT limited to 1 step
+- **FR-020**: Ministers (相/象) MUST jump 2 steps diagonally (田字 pattern) **WITHOUT blocking checks** - no "Elephant Eye" (象眼) blocking (Army Chess style)
+- **FR-021**: Horses (傌/馬) MUST move in Knight L-shape **WITHOUT blocking checks** - no "Horse Leg" (馬腳) blocking (Army Chess style)
+- **FR-022**: Rooks (俥/車) MUST move infinite steps along straight lines (rail movement) but **ARE blocked** by obstacles (cannot jump)
+- **FR-023**: Cannons (炮/包) MUST move infinite steps along straight lines (rail movement) but **ARE blocked** by obstacles; capture by jumping exactly one piece
+- **FR-024**: Soldiers (兵/卒) and Advisors (仕/士) MUST move 1 step (orthogonal for Soldiers, diagonal for Advisors)
+- **FR-025**: All pieces MUST move along grid lines connecting adjacent intersection points
+- **FR-026**: Pieces CAN move to any empty intersection point (13 central empty spots are valid destinations)
 
-**Capture Rules (Three Kingdoms Specific)**:
-- **FR-025**: System MUST allow ANY piece to capture ANY opponent piece (no rank hierarchy)
-- **FR-026**: System MUST prevent pieces from capturing their own team members
-- **FR-027**: Cannon MUST capture by jumping over exactly one piece (any team)
-- **FR-028**: System MUST NOT apply King vs Pawn exception (does not exist in Three Kingdoms)
+**Capture Rules (No Rank Hierarchy)**:
+- **FR-027**: System MUST allow **ANY piece** to capture **ANY opponent piece** (no rank hierarchy)
+- **FR-028**: System MUST prevent pieces from capturing their own faction members
+- **FR-029**: Cannon MUST capture by jumping over exactly one piece (any faction) along a straight line
+- **FR-030**: System MUST NOT apply King vs Pawn exception (does not exist in Three Kingdoms)
 
 **Win Conditions**:
-- **FR-029**: System MUST detect elimination victory: when a player's team is the ONLY team with pieces remaining
-- **FR-030**: System MUST end the game when Teams B and C are eliminated, declaring Team A the winner
-- **FR-031**: System MUST detect draw condition: when 60 consecutive moves pass without any capture
-- **FR-032**: System MUST support stalemate detection: if a player has no legal moves, they are eliminated (removed from turn rotation)
+- **FR-031**: System MUST detect elimination victory: when a player's faction is the ONLY faction with pieces remaining
+- **FR-032**: System MUST end the game when 2 factions are eliminated, declaring the remaining faction's player the winner
+- **FR-033**: System MUST detect draw condition: when 60 consecutive moves pass without any capture
+- **FR-034**: System MUST support stalemate detection: if a player has no legal moves, they are eliminated (removed from turn rotation)
 
-**UI/UX**:
-- **FR-033**: UI MUST display mode selector with "Classic (經典暗棋)" and "Three Kingdoms (三國暗棋)" options
-- **FR-034**: UI MUST display 3-player turn indicator (e.g., "Team A's Turn", "Team B's Turn", "Team C's Turn") with team color
-- **FR-035**: UI MUST use **GREEN (#4CAF50 or similar)** color for Team 1 (Generals' Army) pieces - text, borders, and backgrounds
-- **FR-036**: UI MUST use **RED (#C62828 or similar)** color for Team 2 (Red Advisors) pieces
-- **FR-037**: UI MUST use **BLACK (#1A1A1A or similar)** color for Team 3 (Black Advisors) pieces
-- **FR-038**: UI MUST render board as 5x9 grid with 45 intersection points
-- **FR-039**: UI MUST visually distinguish empty intersections from occupied ones (e.g., small dots or grid markers)
-- **FR-040**: UI MUST display captured pieces per team (3 separate capture counts with team colors)
-- **FR-041**: UI MUST display "Moves Until Draw" counter prominently (countdown from 60 to 0)
-- **FR-042**: UI MUST update the draw counter in real-time after each move
-- **FR-043**: UI MUST show eliminated teams as grayed out or removed from turn indicator
+**UI/UX (Portrait Mode)**:
+- **FR-035**: UI MUST display mode selector with "Classic (經典暗棋)" and "Three Kingdoms (三國暗棋)" options
+- **FR-036**: UI MUST display turn indicator showing:
+  - Before faction assignment: "Player 1's Turn", "Player 2's Turn", "Player 3's Turn"
+  - After faction assignment: "Red's Turn" (with color), "Black's Turn", "Green's Turn"
+- **FR-037**: UI MUST use **GREEN (#4CAF50 or similar)** color for Team 1 (Generals' Army) pieces - text, borders, and backgrounds
+- **FR-038**: UI MUST use **RED (#C62828 or similar)** color for Team 2 (Red Advisors) pieces
+- **FR-039**: UI MUST use **BLACK (#1A1A1A or similar)** color for Team 3 (Black Advisors) pieces
+- **FR-040**: UI MUST render board as **Portrait 5×9 grid** (5 columns × 9 rows) aligned with phone's long edge
+- **FR-041**: UI MUST render **grid lines** (horizontal and vertical) with pieces positioned at **intersection points**
+- **FR-042**: UI MUST visually show **Four Corners layout** at game start (4 clusters of pieces with center empty)
+- **FR-043**: UI MUST distinguish empty intersections (13 central positions) with small dots or subtle markers
+- **FR-044**: UI MUST display captured pieces per faction (3 separate capture counts with faction colors)
+- **FR-045**: UI MUST display "Moves Until Draw" counter prominently (countdown from 60 to 0)
+- **FR-046**: UI MUST update the draw counter in real-time after each move
+- **FR-047**: UI MUST show eliminated factions as grayed out or removed from turn indicator
+
+**UI Safety & Responsiveness (Portrait)**:
+- **FR-048**: UI MUST use **SafeAreaView** to handle device notches and safe area insets (iOS/Android)
+- **FR-049**: UI MUST **dynamically scale cell/intersection size** if board height exceeds available screen space (prevent overflow)
+- **FR-050**: UI MUST ensure entire game (Header + Mode Selector + Board + Footer) fits within phone screen without scrolling
+- **FR-051**: UI MUST lock screen orientation to **Portrait mode** (no landscape support for Three Kingdoms)
+- **FR-052**: UI MUST provide "Back/Exit" button to return to mode selection screen
 
 **Testing**:
-- **FR-044**: Core Three Kingdoms logic MUST have 100% unit test coverage
-- **FR-045**: Integration tests MUST verify 3-player turn rotation with elimination skipping
-- **FR-046**: Integration tests MUST verify elimination victory condition
-- **FR-047**: Integration tests MUST verify draw condition (60 moves without capture)
-- **FR-048**: Integration tests MUST verify counter reset on capture
+- **FR-053**: Core Three Kingdoms logic MUST have 100% unit test coverage
+- **FR-054**: Integration tests MUST verify **dynamic faction assignment** (first flip rule)
+- **FR-055**: Integration tests MUST verify **Four Corners layout** generation (2×4 blocks at corners, 13 center empty)
+- **FR-056**: Integration tests MUST verify **Army Chess movement** (Ministers/Horses move without blocking)
+- **FR-057**: Integration tests MUST verify 3-player turn rotation with elimination skipping
+- **FR-058**: Integration tests MUST verify elimination victory condition
+- **FR-059**: Integration tests MUST verify draw condition (60 moves without capture)
+- **FR-060**: Integration tests MUST verify counter reset on capture
 
 ---
 
@@ -238,16 +273,20 @@ As a player, I want to **distinguish between the 3 teams visually** (Team 1: Gen
 - What if saved game is in Three Kingdoms mode but user selects Classic? → Ignore saved game, start fresh
 
 **Board & Topology**:
-- How many total positions? → **45 intersection points** (5 width × 9 height)
-- How many empty spots at start? → **13 empty spots** (45 - 32 pieces)
-- Do pieces move on grid lines? → YES, pieces move along lines connecting intersections
-- Can pieces occupy any of the 45 intersections? → YES, including the 13 empty spots
+- How many total positions? → **45 intersection points** (5 columns × 9 rows, Portrait orientation)
+- How many empty spots at start? → **13 empty intersections** (central row 4 + central column 2 = "cross" aisle)
+- Do pieces move on grid lines? → YES, pieces move along lines connecting intersections (Army Chess / 軍棋 style)
+- What is the initial layout? → **Four Corners (四角)** - 4 blocks of 2×4 pieces at each corner (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
+- Can pieces occupy any of the 45 intersections? → YES, including the 13 central empty spots
 
-**3-Player Turn Logic**:
-- What if Player B is eliminated mid-game? → Immediately skip their turn in rotation (A → C → A)
-- What if Players B and C are both eliminated? → Game ends immediately, Player A wins
+**3-Player Turn Logic (Dynamic Faction Assignment)**:
+- What if Player 2 flips a piece from Player 1's faction? → Turn passes, but Player 2 is **NOT assigned yet** (retry on next turn until distinct faction found)
+- How long until all 3 factions are assigned? → Depends on flips; typically within first 3-6 turns (as long as 3 distinct factions exist)
+- What if Player 1 flips Green, Player 2 flips Red, Player 3 flips Black? → All 3 assigned, game proceeds normally
+- What if Player B's faction is eliminated mid-game? → Player B is immediately removed from turn rotation (P1 → P3 → P1)
+- What if 2 factions are both eliminated? → Game ends immediately, remaining faction's player wins
 - What if only 1 active player remains mid-turn? → Current turn completes, then victory declared
-- Are eliminated players visible in UI? → YES, shown as grayed out or marked "Eliminated"
+- Are eliminated factions visible in UI? → YES, shown as grayed out or marked "Eliminated"
 
 **Draw Counter**:
 - When does counter decrement? → After each non-capture move (flip without capture, move without capture)
@@ -257,17 +296,19 @@ As a player, I want to **distinguish between the 3 teams visually** (Team 1: Gen
 - What if 60th move is a capture? → Counter resets to 60, game continues
 - What if draw occurs with all 3 teams active? → Draw declared, no winner
 
-**Piece Distribution**:
-- What if shuffle places all Team A pieces together? → Accept it (random is random)
-- What if Team 1's Generals (帥 and 將) are adjacent? → Valid, they belong to same team
-- Can pieces be placed on any of the 45 intersections? → YES, random distribution across all 45
+**Piece Distribution (Four Corners)**:
+- How are pieces shuffled? → All 32 pieces are shuffled, then distributed into 4 corner blocks (8 pieces per corner)
+- What if shuffle places all Green pieces in one corner? → Accept it (random is random)
+- Can same-faction pieces be adjacent at start? → YES, valid if they end up in same corner block
+- Are pieces placed randomly or in "Four Corners"? → **Four Corners layout** (not random across all 45 positions)
 
-**Movement Edge Cases**:
-- Can General move across entire board in one turn? → YES (infinite straight movement along grid lines)
-- Can Minister jump over occupied intersections? → YES (no blocking in Three Kingdoms)
-- Can Horse jump over pieces? → YES (no blocking in Three Kingdoms)
-- Can pieces move to empty intersections? → YES, 13 empty spots are valid destinations
-- Can pieces move diagonally across the grid? → Only Advisors and Ministers (based on piece rules)
+**Movement Edge Cases (Army Chess / 軍棋 Style)**:
+- Can General move across entire board in one turn? → YES (infinite rail movement along straight lines), but **blocked by obstacles** (cannot jump)
+- Can Minister jump over occupied intersections? → YES (no "Elephant Eye" / 象眼 blocking in Three Kingdoms - **Army Chess style**)
+- Can Horse jump over pieces? → YES (no "Horse Leg" / 馬腳 blocking in Three Kingdoms - **Army Chess style**)
+- Are Rooks and Cannons blocked? → YES, Rooks/Cannons move along rails but **cannot jump** (blocked by obstacles)
+- Can pieces move to empty central intersections? → YES, 13 empty spots are valid destinations (central aisle)
+- Can pieces move diagonally across the grid? → Only Advisors (1 step diagonal) and Ministers (2 steps diagonal, no blocking)
 
 **Capture Edge Cases**:
 - Can Soldier capture General? → YES (no rank hierarchy)
@@ -337,26 +378,39 @@ As a player, I want to **distinguish between the 3 teams visually** (Team 1: Gen
 - Pieces occupy the cells themselves
 - No empty spaces at start
 
-**Three Kingdoms Dark Chess**:
-- 4 horizontal lines × 8 vertical lines = **5×9 = 45 intersection points**
-- Pieces occupy the **intersections** (corners where lines meet)
-- 32 pieces placed randomly on 45 intersections
-- **13 empty intersection points** remain at start
-- Pieces move along grid lines between adjacent intersections
+**Three Kingdoms Dark Chess** (Portrait Orientation):
+- **Portrait 5×9 grid** (5 columns × 9 rows) aligned with phone's long edge
+- Pieces occupy the **intersection points** (where grid lines cross)
+- **Four Corners (四角) layout**: 32 pieces arranged in 4 clusters (2×4 blocks) at corners
+- **13 empty intersection points** in center (forming a "cross" aisle)
+- Pieces move along grid lines between adjacent intersections (Army Chess / 軍棋 style)
 
-**Visual Representation**:
+**Visual Representation (Portrait View)**:
 ```
-Classic (8x4 cells):          Three Kingdoms (5x9 intersections):
-┌─┬─┬─┬─┐                     ●─●─●─●─●
-├─┼─┼─┼─┤                     │ │ │ │ │
-├─┼─┼─┼─┤                     ●─●─●─●─●
-├─┼─┼─┼─┤                     │ │ │ │ │
-├─┼─┼─┼─┤                     ●─●─●─●─●
-├─┼─┼─┼─┤                     │ │ │ │ │
-├─┼─┼─┼─┤                     ... (9 rows total)
-├─┼─┼─┼─┤                     
-└─┴─┴─┴─┘                     ● = intersection point (45 total)
-32 cells                      32 pieces + 13 empty
+Classic (8x4 cells):          Three Kingdoms (5×9 intersections, Portrait):
+┌─┬─┬─┬─┐                     ◆ ◆ ○ ◆ ◆  ← Row 0 (Top)
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 1
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 2
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 3
+├─┼─┼─┼─┤                     ○ ○ ○ ○ ○  ← Row 4 (Center - Empty)
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 5
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 6
+├─┼─┼─┼─┤                     ◆ ◆ ○ ◆ ◆  ← Row 7
+└─┴─┴─┴─┘                     ◆ ◆ ○ ◆ ◆  ← Row 8 (Bottom)
+32 cells                      ↑ ↑ ↑ ↑ ↑
+                              C C C C C
+                              o o | o o
+                              l l 2 l l
+                              0 1   3 4
+
+◆ = Piece (face-down at start)
+○ = Empty intersection (13 total)
+"Four Corners": 
+  - Top-Left: Cols 0-1, Rows 0-3 (8 pieces)
+  - Top-Right: Cols 3-4, Rows 0-3 (8 pieces)
+  - Bottom-Left: Cols 0-1, Rows 5-8 (8 pieces)
+  - Bottom-Right: Cols 3-4, Rows 5-8 (8 pieces)
+  - Center: Col 2 (all rows) + Row 4 (all cols) = 13 empty
 ```
 
 ---
@@ -392,19 +446,22 @@ Classic (8x4 cells):          Three Kingdoms (5x9 intersections):
 
 ---
 
-### Movement Rules (移動規則)
+### Movement Rules (移動規則 - Army Chess / 軍棋 Style)
 
-| Piece | Classic Movement | Three Kingdoms Movement | Change |
-|-------|------------------|-------------------------|--------|
-| General (帥/將) | 1 step orthogonal | **Infinite straight along grid lines** (like Rook) | ⭐ MAJOR |
-| Soldier (兵/卒) | 1 step orthogonal | 1 step along grid lines | Same |
-| Advisor (仕/士) | 1 step diagonal | 1 step diagonal along grid lines | Same |
-| Minister (相/象) | 2 steps diagonal (BLOCKED) | **2 steps diagonal (NOT blocked)** | ⭐ CHANGED |
-| Horse (傌/馬) | Knight L-shape (BLOCKED) | **Knight L-shape (NOT blocked)** | ⭐ CHANGED |
-| Rook (俥/車) | Infinite straight | Infinite straight along grid lines | Same |
-| Cannon (炮/包) | Move straight, jump to capture | Move straight along grid lines, jump to capture | Same |
+| Piece | Classic Movement | Three Kingdoms Movement | Blocking? | Change |
+|-------|------------------|-------------------------|-----------|--------|
+| General (帥/將) | 1 step orthogonal | **Infinite rail** (like Rook, along straight lines) | ✅ YES (blocked by obstacles) | ⭐ MAJOR |
+| Soldier (兵/卒) | 1 step orthogonal | 1 step along grid lines | N/A | Same |
+| Advisor (仕/士) | 1 step diagonal | 1 step diagonal along grid lines | N/A | Same |
+| Minister (相/象) | 2 steps diagonal (BLOCKED by 象眼) | **2 steps diagonal (NOT blocked)** - Army Chess style | ❌ NO blocking | ⭐ CHANGED |
+| Horse (傌/馬) | Knight L-shape (BLOCKED by 馬腳) | **Knight L-shape (NOT blocked)** - Army Chess style | ❌ NO blocking | ⭐ CHANGED |
+| Rook (俥/車) | Infinite straight | **Infinite rail** along straight lines | ✅ YES (blocked by obstacles) | Same |
+| Cannon (炮/包) | Move straight, jump to capture | **Rail movement**, jump exactly 1 piece to capture | ✅ YES (blocked, but jumps to capture) | Same |
 
-**Note**: All movements are along grid lines connecting intersection points.
+**Critical Rules**:
+- **"Army Chess" (軍棋) Style**: Ministers and Horses move **without blocking checks** (no 象眼/馬腳)
+- **Rail Movement**: Generals, Rooks, Cannons slide along straight lines but **are blocked** by obstacles (cannot jump, except Cannon when capturing)
+- **All movements** are along grid lines connecting adjacent intersection points
 
 ---
 
@@ -491,11 +548,16 @@ Classic (8x4 cells):          Three Kingdoms (5x9 intersections):
 
 ## Assumptions
 
-1. **Board Rendering**: We will render a 5x9 grid visually, showing grid lines and intersection points clearly
-2. **Empty Intersection Display**: Empty intersections will be marked with subtle dots or grid markers
-3. **Draw Counter Persistence**: Draw counter is not persisted across app restarts (resets on new match)
-4. **Color Accessibility**: GREEN/RED/BLACK colors are chosen for sufficient contrast and color-blind accessibility
-5. **Turn Indicators**: Current turn will be displayed prominently with team color highlighting
+1. **Portrait Orientation**: Three Kingdoms mode locks screen to Portrait (5 columns × 9 rows aligned with phone's long edge)
+2. **Four Corners Layout**: Initial board setup uses deterministic "Four Corners" (四角) pattern (4 blocks of 2×4 pieces), NOT random scatter
+3. **Dynamic Faction Assignment**: Players are NOT pre-assigned factions; they receive factions based on their **first flipped piece** (First Flip Rule)
+4. **Army Chess Mechanics**: Ministers and Horses move **without blocking** (no 象眼/馬腳 checks), following "Army Chess" (軍棋) style
+5. **Board Rendering**: We will render grid lines (horizontal/vertical) with pieces positioned at **intersection points**, visually resembling a Go board or Junqi board
+6. **Empty Intersection Display**: 13 central empty intersections (forming a "cross" aisle) will be marked with subtle dots
+7. **Draw Counter Persistence**: Draw counter is not persisted across app restarts (resets on new match)
+8. **Color Accessibility**: GREEN/RED/BLACK colors are chosen for sufficient contrast and color-blind accessibility
+9. **Turn Indicators**: Before faction assignment, display "Player 1/2/3's Turn"; after assignment, display faction color with name
+10. **SafeAreaView**: UI will use SafeAreaView to handle notches and dynamically scale to fit screen without scrolling
 
 ---
 

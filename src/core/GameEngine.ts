@@ -1,5 +1,5 @@
 /**
- * Game engine: validation and execution of game actions
+ * Game engine: validation and execution of game actions (Multi-mode support)
  * Pure TypeScript - NO React dependencies
  */
 
@@ -8,23 +8,7 @@ import {
   ValidationResult,
   WinResult,
   LegalMoveSet,
-  PieceColor,
 } from './types';
-import { 
-  isValidIndex, 
-  isAdjacent, 
-  hasExactlyOneScreen, 
-  getLineIndices, 
-  isInStraightLine,
-  getStraightLineIndices 
-} from './boardUtils';
-import {
-  canCaptureByRank,
-  isKingVsPawn,
-  canKingCapturePawn,
-  isCannonCapture,
-  TOTAL_PIECES_PER_COLOR,
-} from './rules';
 
 /**
  * Validate if a flip action is legal
@@ -34,7 +18,7 @@ export function validateFlip(match: Match, pieceIndex: number): ValidationResult
     return { isValid: false, error: 'Match already ended' };
   }
 
-  if (!isValidIndex(pieceIndex)) {
+  if (pieceIndex < 0 || pieceIndex >= match.board.length) {
     return { isValid: false, error: 'Invalid piece index' };
   }
 
@@ -64,59 +48,40 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
   newBoard[pieceIndex] = { ...piece, isRevealed: true };
 
   let newStatus: Match['status'] = match.status;
-  let newCurrentTurn: PieceColor | null = match.currentTurn;
+  let newCurrentFactionIndex = match.currentFactionIndex;
+  let newMovesWithoutCapture = match.movesWithoutCapture;
 
   if (match.status === 'waiting-first-flip') {
-    // First flip: assign sides
+    // First flip: assign starting faction
     newStatus = 'in-progress';
-    newCurrentTurn = piece.color;
+    // Find the faction index for the flipped piece
+    newCurrentFactionIndex = match.activeFactions.indexOf(piece.factionId);
+    if (newCurrentFactionIndex === -1) {
+      newCurrentFactionIndex = 0; // Fallback
+    }
   } else if (match.status === 'in-progress') {
-    // Subsequent flip: toggle turn
-    newCurrentTurn = match.currentTurn === 'red' ? 'black' : 'red';
+    // Subsequent flip: rotate turn
+    newCurrentFactionIndex = getNextFactionIndex(match);
+    // Decrement draw counter if applicable
+    if (newMovesWithoutCapture !== null && newMovesWithoutCapture > 0) {
+      newMovesWithoutCapture -= 1;
+    }
   }
 
   return {
     ...match,
     status: newStatus,
-    currentTurn: newCurrentTurn,
+    currentFactionIndex: newCurrentFactionIndex,
     board: newBoard,
+    movesWithoutCapture: newMovesWithoutCapture,
   };
 }
 
 /**
- * Validate if a move action is legal
+ * Validate if a move action is legal (delegate to RuleSet)
  */
 export function validateMove(match: Match, fromIndex: number, toIndex: number): ValidationResult {
-  if (match.status !== 'in-progress') {
-    return { isValid: false, error: 'Match not in progress' };
-  }
-
-  if (!isValidIndex(fromIndex) || !isValidIndex(toIndex)) {
-    return { isValid: false, error: 'Invalid indices' };
-  }
-
-  const fromPiece = match.board[fromIndex];
-  if (fromPiece === null) {
-    return { isValid: false, error: 'No piece at source index' };
-  }
-
-  if (!fromPiece.isRevealed) {
-    return { isValid: false, error: 'Piece not revealed' };
-  }
-
-  if (fromPiece.color !== match.currentTurn) {
-    return { isValid: false, error: 'Not current player\'s turn' };
-  }
-
-  if (!isAdjacent(fromIndex, toIndex)) {
-    return { isValid: false, error: 'Destination not adjacent' };
-  }
-
-  if (match.board[toIndex] !== null) {
-    return { isValid: false, error: 'Destination not empty' };
-  }
-
-  return { isValid: true };
+  return match.mode.ruleSet.validateMove(match, fromIndex, toIndex);
 }
 
 /**
@@ -132,104 +97,35 @@ export function executeMove(match: Match, fromIndex: number, toIndex: number): M
   newBoard[toIndex] = newBoard[fromIndex];
   newBoard[fromIndex] = null;
 
-  const newCurrentTurn: PieceColor = match.currentTurn === 'red' ? 'black' : 'red';
+  let newMovesWithoutCapture = match.movesWithoutCapture;
+  // Decrement draw counter if applicable
+  if (newMovesWithoutCapture !== null && newMovesWithoutCapture > 0) {
+    newMovesWithoutCapture -= 1;
+  }
+
+  const newCurrentFactionIndex = getNextFactionIndex(match);
 
   return {
     ...match,
-    currentTurn: newCurrentTurn,
+    currentFactionIndex: newCurrentFactionIndex,
     board: newBoard,
+    movesWithoutCapture: newMovesWithoutCapture,
   };
 }
 
 /**
- * Validate if a capture action is legal
+ * Validate if a capture action is legal (delegate to RuleSet)
  */
 export function validateCapture(
   match: Match,
   fromIndex: number,
   toIndex: number
 ): ValidationResult {
-  if (match.status !== 'in-progress') {
-    return { isValid: false, error: 'Match not in progress' };
-  }
-
-  if (!isValidIndex(fromIndex) || !isValidIndex(toIndex)) {
-    return { isValid: false, error: 'Invalid indices' };
-  }
-
-  const attacker = match.board[fromIndex];
-  if (attacker === null) {
-    return { isValid: false, error: 'No piece at attacker index' };
-  }
-
-  if (!attacker.isRevealed) {
-    return { isValid: false, error: 'Attacker not revealed' };
-  }
-
-  if (attacker.color !== match.currentTurn) {
-    return { isValid: false, error: 'Not current player\'s turn' };
-  }
-
-  const target = match.board[toIndex];
-  if (target === null) {
-    return { isValid: false, error: 'No piece at target index' };
-  }
-
-  if (!target.isRevealed) {
-    return { isValid: false, error: 'Target not revealed' };
-  }
-
-  if (target.color === attacker.color) {
-    return { isValid: false, error: 'Target is own piece' };
-  }
-
-  // Special rule: Cannon capture
-  if (isCannonCapture(attacker.type)) {
-    // Cannon must jump over exactly one piece (screen) to capture
-    // Target must be in a straight line (same row or column)
-    if (!isInStraightLine(fromIndex, toIndex)) {
-      return { isValid: false, error: 'Cannon target not in straight line' };
-    }
-    
-    // Cannon cannot capture adjacent piece directly
-    if (isAdjacent(fromIndex, toIndex)) {
-      return { isValid: false, error: 'Cannon cannot capture adjacent piece' };
-    }
-    
-    // Must have exactly one screen between Cannon and target
-    if (!hasExactlyOneScreen(match.board, fromIndex, toIndex)) {
-      return { isValid: false, error: 'Cannon requires exactly one screen to capture' };
-    }
-    
-    // Cannon can capture any piece (ignores rank)
-    return { isValid: true };
-  }
-
-  // For non-Cannon pieces, target must be adjacent
-  if (!isAdjacent(fromIndex, toIndex)) {
-    return { isValid: false, error: 'Target not adjacent' };
-  }
-
-  // Special rule: King vs Pawn
-  if (isKingVsPawn(attacker.type, target.type)) {
-    if (!canKingCapturePawn(attacker.type, target.type)) {
-      return { isValid: false, error: 'King cannot capture Pawn' };
-    }
-    // Pawn can capture King (allowed)
-    return { isValid: true };
-  }
-
-  // Standard rank hierarchy
-  if (!canCaptureByRank(attacker.type, target.type)) {
-    return { isValid: false, error: 'Invalid capture: rank too low' };
-  }
-
-  return { isValid: true };
+  return match.mode.ruleSet.validateCapture(match, fromIndex, toIndex);
 }
 
 /**
  * Execute a capture action and return new match state
- * Note: Cannon capture validation is handled separately (requires screen check)
  */
 export function executeCapture(match: Match, fromIndex: number, toIndex: number): Match {
   const validation = validateCapture(match, fromIndex, toIndex);
@@ -243,146 +139,99 @@ export function executeCapture(match: Match, fromIndex: number, toIndex: number)
   // Mark target as dead
   const deadTarget = { ...target, isDead: true };
 
-  // Add to captured array
-  const redCaptured = [...match.redCaptured];
-  const blackCaptured = [...match.blackCaptured];
-  if (attacker.color === 'red') {
-    redCaptured.push(deadTarget);
-  } else {
-    blackCaptured.push(deadTarget);
-  }
+  // Add to captured by faction map
+  const newCapturedByFaction = { ...match.capturedByFaction };
+  newCapturedByFaction[attacker.factionId] = [
+    ...newCapturedByFaction[attacker.factionId],
+    deadTarget,
+  ];
 
   // Move attacker to target position
   const newBoard = [...match.board];
   newBoard[toIndex] = attacker;
   newBoard[fromIndex] = null;
 
-  // Check win condition (capture-all)
-  const winResult = checkWinCondition({
+  // Reset draw counter if applicable
+  let newMovesWithoutCapture = match.movesWithoutCapture;
+  if (newMovesWithoutCapture !== null) {
+    newMovesWithoutCapture = 60; // Reset to 60 for Three Kingdoms
+  }
+
+  // Check if target faction is eliminated
+  const targetFactionId = target.factionId;
+  const targetFactionPiecesRemaining = newBoard.filter(
+    p => p !== null && p.factionId === targetFactionId
+  ).length;
+  
+  let newActiveFactions = [...match.activeFactions];
+  if (targetFactionPiecesRemaining === 0) {
+    // Remove target faction from active factions
+    newActiveFactions = newActiveFactions.filter(id => id !== targetFactionId);
+  }
+
+  // Check win condition
+  const tempMatch: Match = {
     ...match,
     board: newBoard,
-    redCaptured,
-    blackCaptured,
-  });
+    capturedByFaction: newCapturedByFaction,
+    activeFactions: newActiveFactions,
+  };
+  const winResult = checkWinCondition(tempMatch);
 
   let newStatus = match.status;
-  let newWinner: PieceColor | null = null;
-  let newCurrentTurn: PieceColor | null = match.currentTurn;
+  let newWinner: string | null = null;
+  let newCurrentFactionIndex = match.currentFactionIndex;
 
   if (winResult.hasEnded && winResult.winner) {
     newStatus = 'ended';
     newWinner = winResult.winner;
   } else {
-    // Toggle turn if game continues
-    newCurrentTurn = match.currentTurn === 'red' ? 'black' : 'red';
+    // Rotate turn if game continues
+    newCurrentFactionIndex = getNextFactionIndex({
+      ...match,
+      activeFactions: newActiveFactions,
+    });
   }
 
   return {
     ...match,
     status: newStatus,
-    currentTurn: newCurrentTurn,
+    currentFactionIndex: newCurrentFactionIndex,
     winner: newWinner,
     board: newBoard,
-    redCaptured,
-    blackCaptured,
+    capturedByFaction: newCapturedByFaction,
+    activeFactions: newActiveFactions,
+    movesWithoutCapture: newMovesWithoutCapture,
   };
 }
 
 /**
- * Check win condition (capture-all or stalemate)
+ * Check win condition (delegate to RuleSet)
  */
 export function checkWinCondition(match: Match): WinResult {
-  // Check capture-all condition
-  if (match.redCaptured.length >= TOTAL_PIECES_PER_COLOR) {
-    return { hasEnded: true, winner: 'red', reason: 'capture-all' };
-  }
-  if (match.blackCaptured.length >= TOTAL_PIECES_PER_COLOR) {
-    return { hasEnded: true, winner: 'black', reason: 'capture-all' };
+  // Check draw condition first (Three Kingdoms only)
+  if (match.mode.ruleSet.checkDrawCondition(match)) {
+    return { hasEnded: true, winner: undefined, reason: 'stalemate' };
   }
 
-  // Check stalemate (if match is in progress and current player has no legal moves)
-  if (match.status === 'in-progress' && match.currentTurn) {
-    const legalMoves = getLegalMoves(match);
-    if (
-      legalMoves.flips.length === 0 &&
-      legalMoves.moves.length === 0 &&
-      legalMoves.captures.length === 0
-    ) {
-      // Current player has no legal moves - opponent wins
-      const winner: PieceColor = match.currentTurn === 'red' ? 'black' : 'red';
-      return { hasEnded: true, winner, reason: 'stalemate' };
-    }
-  }
-
-  return { hasEnded: false };
+  // Delegate to RuleSet
+  return match.mode.ruleSet.checkWinCondition(match);
 }
 
 /**
- * Get all legal moves for current player
+ * Get all legal moves for current faction (delegate to RuleSet)
  */
 export function getLegalMoves(match: Match): LegalMoveSet {
-  const flips: number[] = [];
-  const moves: Array<{ fromIndex: number; toIndex: number }> = [];
-  const captures: Array<{ fromIndex: number; toIndex: number }> = [];
+  return match.mode.ruleSet.getLegalMoves(match);
+}
 
-  if (match.status === 'ended' || match.currentTurn === null) {
-    return { flips, moves, captures };
+/**
+ * Helper: Get next faction index in turn rotation
+ * Automatically skips eliminated factions
+ */
+function getNextFactionIndex(match: Match): number {
+  if (match.activeFactions.length === 0) {
+    return 0;
   }
-
-  // Find all face-down pieces (flips)
-  for (let i = 0; i < match.board.length; i++) {
-    const piece = match.board[i];
-    if (piece !== null && !piece.isRevealed) {
-      flips.push(i);
-    }
-  }
-
-  // Find all moves and captures for current player's face-up pieces
-  for (let fromIndex = 0; fromIndex < match.board.length; fromIndex++) {
-    const piece = match.board[fromIndex];
-    if (piece === null || !piece.isRevealed || piece.color !== match.currentTurn) {
-      continue;
-    }
-
-    // Check adjacent cells for moves
-    for (let toIndex = 0; toIndex < match.board.length; toIndex++) {
-      if (!isAdjacent(fromIndex, toIndex)) {
-        continue;
-      }
-
-      const target = match.board[toIndex];
-      if (target === null) {
-        // Empty cell - potential move
-        const moveValidation = validateMove(match, fromIndex, toIndex);
-        if (moveValidation.isValid) {
-          moves.push({ fromIndex, toIndex });
-        }
-      } else if (target.isRevealed && target.color !== piece.color) {
-        // Enemy piece - potential capture (non-Cannon)
-        if (!isCannonCapture(piece.type)) {
-          const captureValidation = validateCapture(match, fromIndex, toIndex);
-          if (captureValidation.isValid) {
-            captures.push({ fromIndex, toIndex });
-          }
-        }
-      }
-    }
-
-    // Special handling for Cannon captures (can jump to non-adjacent targets)
-    if (isCannonCapture(piece.type)) {
-      const straightLineIndices = getStraightLineIndices(fromIndex);
-      for (const toIndex of straightLineIndices) {
-        const target = match.board[toIndex];
-        if (target !== null && target.isRevealed && target.color !== piece.color) {
-          // Enemy piece in straight line - check if valid Cannon capture
-          const captureValidation = validateCapture(match, fromIndex, toIndex);
-          if (captureValidation.isValid) {
-            captures.push({ fromIndex, toIndex });
-          }
-        }
-      }
-    }
-  }
-
-  return { flips, moves, captures };
+  return (match.currentFactionIndex + 1) % match.activeFactions.length;
 }

@@ -6,11 +6,12 @@
 
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Dimensions, SafeAreaView } from 'react-native';
-import { Board } from '../core/types';
+import { Board, Faction } from '../core/types';
 import { PieceComponent } from './PieceComponent';
 
 interface IntersectionBoardRendererProps {
   board: Board;
+  factions: Faction[]; // For faction color mapping
   selectedIndex: number | null;
   onCellTap: (index: number) => void;
 }
@@ -41,6 +42,7 @@ const EMPTY_DOT_SIZE = 8;
 
 export const IntersectionBoardRenderer: React.FC<IntersectionBoardRendererProps> = ({
   board,
+  factions,
   selectedIndex,
   onCellTap,
 }) => {
@@ -78,7 +80,10 @@ export const IntersectionBoardRenderer: React.FC<IntersectionBoardRendererProps>
         ) : (
           // Piece at intersection
           <View style={styles.pieceContainer}>
-            <PieceComponent piece={piece} />
+            <PieceComponent 
+              piece={piece} 
+              faction={factions.find((f) => f.id === piece.factionId)} 
+            />
           </View>
         )}
       </TouchableOpacity>

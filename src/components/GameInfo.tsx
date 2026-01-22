@@ -99,6 +99,50 @@ export const GameInfo: React.FC = () => {
         </Text>
       </View>
 
+      {/* Player Avatars for Three Kingdoms mode */}
+      {match.mode.id === 'three-kingdoms' && (
+        <View style={styles.playerAvatarsContainer}>
+          {[0, 1, 2].map((playerIndex) => {
+            const assignedFactionId = match.playerFactionMap[playerIndex];
+            const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
+            const isActive = match.currentPlayerIndex === playerIndex;
+
+            // Color circle or "?" if unassigned
+            let playerColor = '#9E9E9E'; // Gray default
+            let playerLabel = '?';
+            if (assignedFaction) {
+              if (assignedFaction.color === 'green') {
+                playerColor = '#2E7D32';
+                playerLabel = '綠';
+              } else if (assignedFaction.color === 'red') {
+                playerColor = '#C62828';
+                playerLabel = '紅';
+              } else if (assignedFaction.color === 'black') {
+                playerColor = '#212121';
+                playerLabel = '黑';
+              }
+            }
+
+            return (
+              <View key={playerIndex} style={styles.playerAvatarWrapper}>
+                <View 
+                  style={[
+                    styles.playerAvatar, 
+                    { borderColor: playerColor },
+                    isActive && styles.playerAvatarActive,
+                  ]}
+                >
+                  <Text style={[styles.playerAvatarText, { color: playerColor }]}>
+                    {playerLabel}
+                  </Text>
+                </View>
+                <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
       {/* Draw counter for Three Kingdoms mode */}
       {match.status === 'in-progress' && match.movesWithoutCapture !== null && (
         <View style={styles.drawCounterContainer}>
@@ -221,5 +265,48 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#8B4513',
     fontWeight: 'bold',
+  },
+  playerAvatarsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFAF0', // Floral white
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D7CCC8', // Light brown
+  },
+  playerAvatarWrapper: {
+    alignItems: 'center',
+  },
+  playerAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  playerAvatarActive: {
+    borderWidth: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  playerAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  playerAvatarLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#6D4C41',
+    marginTop: 4,
   },
 });

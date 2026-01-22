@@ -95,6 +95,7 @@ export const BoardView: React.FC = () => {
     return (
       <IntersectionBoardRenderer
         board={match.board}
+        factions={match.factions}
         selectedIndex={selectedIndex}
         onCellTap={handleCellTap}
       />

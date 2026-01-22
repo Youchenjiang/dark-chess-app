@@ -95,11 +95,13 @@ export class ThreeKingdomsRules implements RuleSet {
       case 'Rook': // Rook (車) - infinite straight
         return this.isInfiniteStraitMove(fromIndex, toIndex, board);
       
-      case 'Guard': // Guard (士) - one step orthogonal
+      case 'Guard': // Guard (士) - one step DIAGONAL (Army Chess style)
+        return this.isOneDiagonalStep(fromIndex, toIndex);
+      
       case 'Cannon': // Cannon (炮) - one step orthogonal (capture is different)
       case 'Pawn': // Pawn (兵/卒) - one step orthogonal
       default:
-        // Standard adjacent move
+        // Standard adjacent move (orthogonal)
         return adjacentIndices.includes(toIndex);
     }
   }
@@ -164,6 +166,20 @@ export class ThreeKingdomsRules implements RuleSet {
     
     // L-shape: (2,1) or (1,2)
     return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+  }
+
+  /**
+   * Check if move is one step diagonal (for Guard/Advisor)
+   */
+  private isOneDiagonalStep(fromIndex: number, toIndex: number): boolean {
+    const { row: fromRow, col: fromCol } = this.indexToRowCol(fromIndex);
+    const { row: toRow, col: toCol } = this.indexToRowCol(toIndex);
+    
+    const rowDiff = Math.abs(toRow - fromRow);
+    const colDiff = Math.abs(toCol - fromCol);
+    
+    // Must be exactly 1 step diagonal
+    return rowDiff === 1 && colDiff === 1;
   }
 
   /**
@@ -255,7 +271,9 @@ export class ThreeKingdomsRules implements RuleSet {
       case 'Rook': // Rook - infinite straight capture
         return this.isInfiniteStraitMove(fromIndex, toIndex, board);
       
-      case 'Guard': // Guard - adjacent only
+      case 'Guard': // Guard - one step diagonal capture
+        return this.isOneDiagonalStep(fromIndex, toIndex);
+      
       case 'Pawn': // Pawn - adjacent only
       default:
         return adjacentIndices.includes(toIndex);

@@ -1,15 +1,17 @@
 /**
  * PieceComponent - Display a single Chinese Chess piece (T021)
  * Shows face-down (hidden) or face-up (revealed with Chinese character)
+ * Supports Three Kingdoms mode with 3 factions (Green/Red/Black)
  */
 
 import React from 'react';
 import { Text, StyleSheet, Dimensions } from 'react-native';
-import { Piece } from '../core/types';
+import { Piece, Faction } from '../core/types';
 import { BOARD_COLS } from '../core/boardUtils';
 
 interface PieceComponentProps {
   piece: Piece | null;
+  faction?: Faction; // Faction object for color mapping (Three Kingdoms mode)
 }
 
 // Calculate font size based on screen dimensions (responsive)
@@ -52,7 +54,7 @@ const PIECE_LABELS_BLACK: Record<Piece['type'], string> = {
   Pawn: '卒',
 };
 
-export const PieceComponent: React.FC<PieceComponentProps> = ({ piece }) => {
+export const PieceComponent: React.FC<PieceComponentProps> = ({ piece, faction }) => {
   if (piece === null) {
     return <Text style={styles.empty}></Text>;
   }
@@ -62,9 +64,20 @@ export const PieceComponent: React.FC<PieceComponentProps> = ({ piece }) => {
     return <Text style={[styles.piece, styles.faceDown]}>🀫</Text>;
   }
 
-  // Face-up piece - show Chinese character with color
-  const label = piece.color === 'red' ? PIECE_LABELS[piece.type] : PIECE_LABELS_BLACK[piece.type];
-  const colorStyle = piece.color === 'red' ? styles.red : styles.black;
+  // Face-up piece - show Chinese character with faction color
+  // Determine faction color (default to red for Classic mode compatibility)
+  const factionColor = faction?.color || 'red';
+  
+  // Select label based on faction color (Red uses traditional red characters, Black/Green use black characters)
+  const label = factionColor === 'red' ? PIECE_LABELS[piece.type] : PIECE_LABELS_BLACK[piece.type];
+  
+  // Map faction color to style
+  let colorStyle = styles.red; // Default
+  if (factionColor === 'green') {
+    colorStyle = styles.green;
+  } else if (factionColor === 'black') {
+    colorStyle = styles.black;
+  }
 
   return <Text style={[styles.piece, styles.faceUp, colorStyle]}>{label}</Text>;
 };
@@ -89,11 +102,15 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE,
   },
   red: {
-    color: '#C62828', // Deep red (traditional)
+    color: '#C62828', // Deep red (traditional) - Team B
     textShadowColor: 'rgba(139, 0, 0, 0.3)',
   },
   black: {
-    color: '#1A1A1A', // Near black (traditional)
+    color: '#212121', // Near black (traditional) - Team C
     textShadowColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  green: {
+    color: '#2E7D32', // Deep green - Team A (Generals' Army)
+    textShadowColor: 'rgba(27, 94, 32, 0.3)',
   },
 });

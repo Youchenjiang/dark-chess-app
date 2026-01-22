@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 
 export default function App() {
   const { match, newMatch, loadPersistedMode, error, clearError } = useGameStore();
-  const [showModeSelector, setShowModeSelector] = useState(true);
+  const [showModeSelector, setShowModeSelector] = useState(false); // Start with game view (not mode selector)
 
   // Load persisted mode and start a new match on mount
   useEffect(() => {
@@ -90,9 +90,14 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </View>
-        {showModeSelector && <ModeSelector onSelect={handleModeSelected} />}
-        <GameInfo />
-        <BoardView />
+        {showModeSelector ? (
+          <ModeSelector onSelect={handleModeSelected} />
+        ) : (
+          <>
+            <GameInfo />
+            <BoardView />
+          </>
+        )}
       </View>
       {error && (
         <Toast 

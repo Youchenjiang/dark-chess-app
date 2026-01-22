@@ -316,11 +316,13 @@ describe('ThreeKingdomsRules', () => {
 
     it('should find all legal captures for current faction', () => {
       const match = createTestMatch();
+      // Place Guard at index 10 (row=2, col=0)
       match.board[10] = createPiece('team-a-guard', 'Guard', 'team-a');
-      match.board[11] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      // Place enemy at diagonal position: index 6 (row=1, col=1) - one step diagonal
+      match.board[6] = createPiece('team-b-pawn', 'Pawn', 'team-b');
 
       const legalMoves = tkRules.getLegalMoves(match);
-      expect(legalMoves.captures).toContainEqual({ fromIndex: 10, toIndex: 11 });
+      expect(legalMoves.captures).toContainEqual({ fromIndex: 10, toIndex: 6 });
     });
 
     it('should return empty sets when match ended', () => {
@@ -339,6 +341,31 @@ describe('ThreeKingdomsRules', () => {
       // Update helper function to include playerFactionMap and currentPlayerIndex
       createTestMatch().playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
       createTestMatch().currentPlayerIndex = 0;
+    });
+
+    it('should allow Guard (Advisor) to move one step diagonally only', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Guard at index 22 (row=4, col=2) - center
+      match.board[22] = createPiece('team-a-guard', 'Guard', 'team-a');
+      
+      // Diagonal positions from 22: (3,1)=16, (3,3)=18, (5,1)=26, (5,3)=28
+      // Orthogonal positions from 22: (3,2)=17, (4,1)=21, (4,3)=23, (5,2)=27
+      
+      // Empty diagonal target (5,3) = index 28
+      match.board[28] = null;
+      // Empty orthogonal target (5,2) = index 27
+      match.board[27] = null;
+
+      // Guard should be able to move diagonally
+      const resultDiagonal = tkRules.validateMove(match, 22, 28);
+      expect(resultDiagonal.isValid).toBe(true);
+
+      // Guard should NOT be able to move orthogonally
+      const resultOrthogonal = tkRules.validateMove(match, 22, 27);
+      expect(resultOrthogonal.isValid).toBe(false);
     });
 
     it('should allow Minister to jump 2 diagonals over obstacles (unblocked)', () => {

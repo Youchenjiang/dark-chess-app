@@ -94,16 +94,38 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
         newCurrentFactionIndex = match.activeFactions.indexOf(firstFactionId);
       }
     } else {
-      // Classic: First flip immediately starts the game with the flipped faction
+      // Classic: Dynamic faction assignment via First Flip
+      // P1 flips -> P1 gets that faction, P2 gets opposite faction
+      const flippedFactionId = piece.factionId;
+      const oppositeFactionId = flippedFactionId === 'red' ? 'black' : 'red';
+      
+      // Assign P1 to flipped faction, P2 to opposite
+      newPlayerFactionMap[0] = flippedFactionId;
+      newPlayerFactionMap[1] = oppositeFactionId;
+      
+      // Start game with P1's faction
       newStatus = 'in-progress';
-      newCurrentFactionIndex = match.activeFactions.indexOf(piece.factionId);
+      newCurrentFactionIndex = match.activeFactions.indexOf(flippedFactionId);
+      newCurrentPlayerIndex = 0; // P1 starts
+      
       if (newCurrentFactionIndex === -1) {
         newCurrentFactionIndex = 0; // Fallback
       }
     }
   } else if (match.status === 'in-progress') {
-    // Subsequent flip: rotate turn
-    newCurrentFactionIndex = getNextFactionIndex(match);
+    // Subsequent flip: rotate turn based on mode
+    if (isThreeKingdoms) {
+      // Three Kingdoms: rotate player (0 -> 1 -> 2 -> 0)
+      newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+      // Update faction index based on the new player's assigned faction
+      const nextPlayerFaction = newPlayerFactionMap[newCurrentPlayerIndex];
+      if (nextPlayerFaction) {
+        newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
+      }
+    } else {
+      // Classic: rotate faction directly
+      newCurrentFactionIndex = getNextFactionIndex(match);
+    }
     // Decrement draw counter if applicable
     if (newMovesWithoutCapture !== null && newMovesWithoutCapture > 0) {
       newMovesWithoutCapture -= 1;
@@ -147,11 +169,28 @@ export function executeMove(match: Match, fromIndex: number, toIndex: number): M
     newMovesWithoutCapture -= 1;
   }
 
-  const newCurrentFactionIndex = getNextFactionIndex(match);
+  // Rotate turn based on mode
+  let newCurrentFactionIndex = match.currentFactionIndex;
+  let newCurrentPlayerIndex = match.currentPlayerIndex;
+  const isThreeKingdoms = match.mode.id === 'three-kingdoms';
+
+  if (isThreeKingdoms) {
+    // Three Kingdoms: rotate player (0 -> 1 -> 2 -> 0)
+    newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+    // Update faction index based on the new player's assigned faction
+    const nextPlayerFaction = match.playerFactionMap[newCurrentPlayerIndex];
+    if (nextPlayerFaction) {
+      newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
+    }
+  } else {
+    // Classic: rotate faction directly
+    newCurrentFactionIndex = getNextFactionIndex(match);
+  }
 
   return {
     ...match,
     currentFactionIndex: newCurrentFactionIndex,
+    currentPlayerIndex: newCurrentPlayerIndex,
     board: newBoard,
     movesWithoutCapture: newMovesWithoutCapture,
   };
@@ -225,22 +264,49 @@ export function executeCapture(match: Match, fromIndex: number, toIndex: number)
   let newStatus = match.status;
   let newWinner: string | null = null;
   let newCurrentFactionIndex = match.currentFactionIndex;
+  let newCurrentPlayerIndex = match.currentPlayerIndex;
 
   if (winResult.hasEnded && winResult.winner) {
     newStatus = 'ended';
     newWinner = winResult.winner;
   } else {
-    // Rotate turn if game continues
-    newCurrentFactionIndex = getNextFactionIndex({
-      ...match,
-      activeFactions: newActiveFactions,
-    });
+    // Rotate turn if game continues based on mode
+    const isThreeKingdoms = match.mode.id === 'three-kingdoms';
+    
+    if (isThreeKingdoms) {
+      // Three Kingdoms: rotate player (0 -> 1 -> 2 -> 0)
+      newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+      // Update faction index based on the new player's assigned faction
+      const nextPlayerFaction = match.playerFactionMap[newCurrentPlayerIndex];
+      if (nextPlayerFaction && newActiveFactions.includes(nextPlayerFaction)) {
+        newCurrentFactionIndex = newActiveFactions.indexOf(nextPlayerFaction);
+      } else {
+        // If next player's faction is eliminated, continue rotating until we find an active player
+        let attempts = 0;
+        while (attempts < match.mode.playerCount) {
+          newCurrentPlayerIndex = (newCurrentPlayerIndex + 1) % match.mode.playerCount;
+          const playerFaction = match.playerFactionMap[newCurrentPlayerIndex];
+          if (playerFaction && newActiveFactions.includes(playerFaction)) {
+            newCurrentFactionIndex = newActiveFactions.indexOf(playerFaction);
+            break;
+          }
+          attempts++;
+        }
+      }
+    } else {
+      // Classic: rotate faction directly
+      newCurrentFactionIndex = getNextFactionIndex({
+        ...match,
+        activeFactions: newActiveFactions,
+      });
+    }
   }
 
   return {
     ...match,
     status: newStatus,
     currentFactionIndex: newCurrentFactionIndex,
+    currentPlayerIndex: newCurrentPlayerIndex,
     winner: newWinner,
     board: newBoard,
     capturedByFaction: newCapturedByFaction,

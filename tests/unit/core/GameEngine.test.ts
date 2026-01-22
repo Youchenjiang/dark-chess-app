@@ -892,5 +892,120 @@ describe('GameEngine', () => {
         expect(resultMatch.currentPlayerIndex).toBe(1);
       }
     });
+
+    it('[Phase 7 Bug Fix] should implement strict player rotation (0->1->2->0) in Three Kingdoms', () => {
+      const tkMatch = createInitialMatch(GAME_MODES.threeKingdoms);
+      
+      // Setup: Assign all 3 players to factions
+      // Player 0 -> team-a, Player 1 -> team-b, Player 2 -> team-c
+      const teamAPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-a')!;
+      const teamBPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-b')!;
+      const teamCPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-c')!;
+      
+      let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
+      expect(currentMatch.playerFactionMap[0]).toBe('team-a');
+      expect(currentMatch.currentPlayerIndex).toBe(1); // Next player
+      
+      currentMatch = executeFlip(currentMatch, teamBPieceIdx);
+      expect(currentMatch.playerFactionMap[1]).toBe('team-b');
+      expect(currentMatch.currentPlayerIndex).toBe(2); // Next player
+      
+      currentMatch = executeFlip(currentMatch, teamCPieceIdx);
+      expect(currentMatch.playerFactionMap[2]).toBe('team-c');
+      expect(currentMatch.status).toBe('in-progress');
+      expect(currentMatch.currentPlayerIndex).toBe(0); // Back to Player 0
+      
+      // Now test strict rotation in 'in-progress' mode by flipping another piece
+      // Player 0 (team-a) flips
+      const unrevealedPiece = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
+      
+      currentMatch = executeFlip(currentMatch, unrevealedPiece);
+      
+      // Turn should rotate to Player 1 (not necessarily faction index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      
+      // Player 1's faction should be active
+      const player1Faction = currentMatch.playerFactionMap[1];
+      expect(currentMatch.activeFactions[currentMatch.currentFactionIndex]).toBe(player1Faction);
+    });
+  });
+
+  describe('Classic Mode Dynamic Assignment (Phase 7 Bug Fix)', () => {
+    it('[Phase 7 Bug Fix] should assign P1 to flipped faction and P2 to opposite faction', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // Initial state: both players unassigned
+      expect(classicMatch.playerFactionMap[0]).toBeNull();
+      expect(classicMatch.playerFactionMap[1]).toBeNull();
+      expect(classicMatch.status).toBe('waiting-first-flip');
+      
+      // Player 1 flips a red piece
+      const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
+      const resultMatch = executeFlip(classicMatch, redPieceIdx);
+      
+      // Player 1 should be assigned to red
+      expect(resultMatch.playerFactionMap[0]).toBe('red');
+      
+      // Player 2 should be assigned to black (opposite)
+      expect(resultMatch.playerFactionMap[1]).toBe('black');
+      
+      // Game should start with Player 1's turn
+      expect(resultMatch.status).toBe('in-progress');
+      expect(resultMatch.currentPlayerIndex).toBe(0);
+      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('red'));
+    });
+
+    it('[Phase 7 Bug Fix] should assign P1 to black if they flip black first', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // Player 1 flips a black piece
+      const blackPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'black')!;
+      const resultMatch = executeFlip(classicMatch, blackPieceIdx);
+      
+      // Player 1 should be assigned to black
+      expect(resultMatch.playerFactionMap[0]).toBe('black');
+      
+      // Player 2 should be assigned to red (opposite)
+      expect(resultMatch.playerFactionMap[1]).toBe('red');
+      
+      // Game should start with Player 1's turn (black faction)
+      expect(resultMatch.status).toBe('in-progress');
+      expect(resultMatch.currentPlayerIndex).toBe(0);
+      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('black'));
+    });
+  });
+
+  describe('Green Player Move Validation (Phase 7 Bug Fix)', () => {
+    it('[Phase 7 Bug Fix] should allow green player to move green pieces', () => {
+      const tkMatch = createInitialMatch(GAME_MODES.threeKingdoms);
+      
+      // Assign Player 0 to team-a (green)
+      const teamAPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-a')!;
+      const teamBPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-b')!;
+      const teamCPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-c')!;
+      
+      let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
+      currentMatch = executeFlip(currentMatch, teamBPieceIdx);
+      currentMatch = executeFlip(currentMatch, teamCPieceIdx);
+      
+      // Now Player 0 (team-a/green) should be able to flip more pieces
+      expect(currentMatch.status).toBe('in-progress');
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.playerFactionMap[0]).toBe('team-a');
+      
+      // Find an unrevealed piece (any faction)
+      const unrevealedIdx = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
+      
+      // Validate flip should succeed (Player 0 can flip during their turn)
+      const validation = validateFlip(currentMatch, unrevealedIdx);
+      expect(validation.isValid).toBe(true);
+      
+      // Execute flip should succeed and rotate turn
+      const resultMatch = executeFlip(currentMatch, unrevealedIdx);
+      expect(resultMatch.board[unrevealedIdx]?.isRevealed).toBe(true);
+      
+      // Turn should rotate to Player 1
+      expect(resultMatch.currentPlayerIndex).toBe(1);
+    });
   });
 });

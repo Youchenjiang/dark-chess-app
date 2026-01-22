@@ -149,8 +149,8 @@ function createClassicMatch(mode: GameMode): Match {
     factions: [RED_FACTION, BLACK_FACTION],
     activeFactions: ['red', 'black'],
     currentFactionIndex: 0,
-    currentPlayerIndex: 0, // Classic uses factionIndex directly
-    playerFactionMap: { 0: 'red', 1: 'black' }, // Classic: players pre-assigned
+    currentPlayerIndex: 0, // Player 0 starts (will rotate 0 -> 1)
+    playerFactionMap: { 0: null, 1: null }, // Classic: dynamic assignment via First Flip (P1 gets flipped faction, P2 gets opposite)
     winner: null,
     board,
     capturedByFaction: { red: [], black: [] },

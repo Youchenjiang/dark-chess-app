@@ -31,60 +31,8 @@ export const GameInfo: React.FC = () => {
     return factionNames[factionId] || factionId;
   };
 
-  // Game status text in Traditional Chinese
-  let statusText = '';
-  let winReasonText = '';
-  
-  if (match.status === 'waiting-first-flip') {
-    // For Three Kingdoms: show player turn if in dynamic assignment phase
-    if (match.mode.id === 'three-kingdoms') {
-      const currentPlayer = match.currentPlayerIndex;
-      const currentPlayerFaction = match.playerFactionMap[currentPlayer];
-      
-      if (currentPlayerFaction === null) {
-        // Player not yet assigned - show player number
-        statusText = `玩家 ${currentPlayer + 1} 回合 - 翻開棋子選擇陣營`; // Player X turn - flip to choose faction
-      } else {
-        // Player already assigned - show "waiting for others"
-        statusText = `等待其他玩家選擇陣營...`; // Waiting for other players
-      }
-    } else {
-      // Classic mode
-      statusText = '點擊任意棋子開始遊戲'; // Tap any piece to start game
-    }
-  } else if (match.status === 'in-progress') {
-    const turnText = getFactionDisplayName(currentFactionId);
-    statusText = `${turnText}回合`; // [Faction] turn
-  } else if (match.status === 'ended' && match.winner) {
-    const winnerText = getFactionDisplayName(match.winner);
-    statusText = `${winnerText}獲勝!`; // [Faction] wins!
-    
-    // Add win reason if available
-    const winnerCaptured = match.capturedByFaction[match.winner]?.length || 0;
-    const totalPiecesPerFaction = match.mode.id === 'classic' ? 16 : (match.mode.id === 'three-kingdoms' ? 22 : 0);
-    
-    if (winnerCaptured >= totalPiecesPerFaction) {
-      winReasonText = '(全數吃光)'; // (capture-all)
-    } else {
-      winReasonText = '(對方無子可動)'; // (stalemate - opponent cannot move)
-    }
-  } else if (match.status === 'ended' && !match.winner) {
-    statusText = '平局'; // Draw
-    winReasonText = '(和棋)'; // (draw condition)
-  }
-
   return (
     <View style={styles.container}>
-      {/* Status Text (only for non-gameplay states) */}
-      {match.status !== 'in-progress' && (
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>
-            {statusText}
-            {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
-          </Text>
-        </View>
-      )}
-
       {/* Player Avatars with Captured Pieces (supports both Classic and Three Kingdoms) */}
       <View style={styles.playerAvatarsContainer}>
         {Array.from({ length: match.mode.playerCount }, (_, playerIndex) => {
@@ -181,20 +129,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FFF8DC', // Cornsilk (light yellow)
     alignItems: 'center',
-  },
-  statusContainer: {
-    marginBottom: 12,
-  },
-  statusText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#8B4513', // Brown
-    textAlign: 'center',
-  },
-  winReason: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: 'normal',
   },
   drawCounterContainer: {
     marginTop: 8,

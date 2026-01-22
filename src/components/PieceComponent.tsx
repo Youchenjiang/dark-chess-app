@@ -117,7 +117,8 @@ const styles = StyleSheet.create({
   },
   black: {
     color: '#212121', // Near black (traditional) - Team C
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowColor: 'white', // White shadow for better contrast
+    textShadowRadius: 2,
   },
   green: {
     color: '#2E7D32', // Deep green - Team A (Generals' Army)

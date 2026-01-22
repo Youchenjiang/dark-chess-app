@@ -14,12 +14,27 @@ import {
 } from '../../../src/core/GameEngine';
 import { createInitialMatch } from '../../../src/core/BoardGenerator';
 import { Match, Piece } from '../../../src/core/types';
+import { GAME_MODES, RED_FACTION, BLACK_FACTION } from '../../../src/core/GameModes';
+
+/**
+ * Test helper: Create a Classic mode match for testing
+ */
+function createTestMatch(): Match {
+  return createInitialMatch(GAME_MODES.classic);
+}
+
+/**
+ * Test helper: Get the current faction ID from match
+ */
+function getCurrentFactionId(match: Match): string {
+  return match.activeFactions[match.currentFactionIndex];
+}
 
 describe('GameEngine', () => {
   let match: Match;
 
   beforeEach(() => {
-    match = createInitialMatch();
+    match = createTestMatch();
   });
 
   describe('validateFlip (T016, T017)', () => {
@@ -65,7 +80,7 @@ describe('GameEngine', () => {
       const endedMatch: Match = {
         ...match,
         status: 'ended',
-        winner: 'red',
+        winner: 'red', // Faction ID
       };
 
       const result = validateFlip(endedMatch, 0);
@@ -77,7 +92,7 @@ describe('GameEngine', () => {
   describe('executeFlip - First flip side assignment (T016)', () => {
     it('should flip a piece and assign sides on first flip', () => {
       const piece = match.board[0]!;
-      const originalColor = piece.color;
+      const originalFactionId = piece.factionId;
 
       const newMatch = executeFlip(match, 0);
 
@@ -88,21 +103,21 @@ describe('GameEngine', () => {
       expect(match.status).toBe('waiting-first-flip');
       expect(newMatch.status).toBe('in-progress');
 
-      // Current turn should be set to the flipped piece's color
-      expect(match.currentTurn).toBe(null);
-      expect(newMatch.currentTurn).toBe(originalColor);
+      // Current turn should be set to the flipped piece's faction
+      expect(match.currentFactionIndex).toBe(0);
+      expect(getCurrentFactionId(newMatch)).toBe(originalFactionId);
     });
 
     it('should toggle turn on subsequent flips', () => {
       // First flip
       const firstFlip = executeFlip(match, 0);
-      const firstTurn = firstFlip.currentTurn!;
+      const firstFactionIndex = firstFlip.currentFactionIndex;
 
       // Second flip
       const secondFlip = executeFlip(firstFlip, 1);
 
-      // Turn should toggle
-      expect(secondFlip.currentTurn).toBe(firstTurn === 'red' ? 'black' : 'red');
+      // Turn should toggle (in Classic: 0 -> 1, or 1 -> 0)
+      expect(secondFlip.currentFactionIndex).not.toBe(firstFactionIndex);
     });
 
     it('should preserve immutability (return new match object)', () => {
@@ -160,7 +175,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'piece-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -172,18 +187,19 @@ describe('GameEngine', () => {
 
     it('should reject move of opponent piece (turn ownership)', () => {
       // Place an opponent piece at index 8
-      const opponentColor: Piece['color'] = inProgressMatch.currentTurn === 'red' ? 'black' : 'red';
+      const currentFactionId = getCurrentFactionId(inProgressMatch);
+      const opponentFactionId = currentFactionId === 'red' ? 'black' : 'red';
       inProgressMatch.board[8] = {
         id: 'opponent-piece',
         type: 'Pawn',
-        color: opponentColor,
+        factionId: opponentFactionId,
         isRevealed: true,
         isDead: false,
       };
 
       const result = validateMove(inProgressMatch, 8, 9);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("Not current player's turn");
+      expect(result.error).toBe("Not current faction's turn");
     });
   });
 
@@ -199,7 +215,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-rook-1',
         type: 'Rook',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -208,12 +224,13 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
 
-      inProgressMatch.currentTurn = 'red';
+      // Set current turn to red
+      inProgressMatch.currentFactionIndex = 0; // red is at index 0
 
       const result = validateCapture(inProgressMatch, 0, 1);
       expect(result.isValid).toBe(true);
@@ -224,7 +241,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -233,12 +250,13 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-rook-1',
         type: 'Rook',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
 
-      inProgressMatch.currentTurn = 'red';
+      // Set current turn to red
+      inProgressMatch.currentFactionIndex = 0; // red is at index 0
 
       const result = validateCapture(inProgressMatch, 0, 1);
       expect(result.isValid).toBe(false);
@@ -251,7 +269,7 @@ describe('GameEngine', () => {
 
     beforeEach(() => {
       inProgressMatch = executeFlip(match, 0);
-      inProgressMatch.currentTurn = 'red';
+      inProgressMatch.currentFactionIndex = 0; // Set to red
     });
 
     it('should reject King capturing Pawn', () => {
@@ -259,7 +277,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-king-1',
         type: 'King',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -268,7 +286,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -283,7 +301,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -292,7 +310,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-king-1',
         type: 'King',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -307,7 +325,7 @@ describe('GameEngine', () => {
 
     beforeEach(() => {
       inProgressMatch = executeFlip(match, 0);
-      inProgressMatch.currentTurn = 'red';
+      inProgressMatch.currentFactionIndex = 0; // Set to red
     });
 
     it('should reject Cannon capturing adjacent piece (0 screens)', () => {
@@ -315,7 +333,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
         type: 'Cannon',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -324,7 +342,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -339,7 +357,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
         type: 'Cannon',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -348,7 +366,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -357,7 +375,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[2] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -375,7 +393,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-cannon-1',
         type: 'Cannon',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -384,7 +402,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -393,7 +411,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[2] = {
         id: 'red-pawn-2',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -402,7 +420,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[3] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -419,15 +437,17 @@ describe('GameEngine', () => {
       const captureAllMatch: Match = {
         ...match,
         status: 'in-progress',
-        currentTurn: 'red',
-        redCaptured: new Array(16).fill(null).map((_, i) => ({
-          id: `black-${i}`,
-          type: 'Pawn',
-          color: 'black' as const,
-          isRevealed: true,
-          isDead: true,
-        })),
-        blackCaptured: [],
+        currentFactionIndex: 0, // red's turn
+        capturedByFaction: {
+          red: new Array(16).fill(null).map((_, i) => ({
+            id: `black-${i}`,
+            type: 'Pawn',
+            factionId: 'black',
+            isRevealed: true,
+            isDead: true,
+          })),
+          black: [],
+        },
       };
 
       const result = checkWinCondition(captureAllMatch);
@@ -440,15 +460,17 @@ describe('GameEngine', () => {
       const captureAllMatch: Match = {
         ...match,
         status: 'in-progress',
-        currentTurn: 'black',
-        redCaptured: [],
-        blackCaptured: new Array(16).fill(null).map((_, i) => ({
-          id: `red-${i}`,
-          type: 'Pawn',
-          color: 'red' as const,
-          isRevealed: true,
-          isDead: true,
-        })),
+        currentFactionIndex: 1, // black's turn
+        capturedByFaction: {
+          red: [],
+          black: new Array(16).fill(null).map((_, i) => ({
+            id: `red-${i}`,
+            type: 'Pawn',
+            factionId: 'red',
+            isRevealed: true,
+            isDead: true,
+          })),
+        },
       };
 
       const result = checkWinCondition(captureAllMatch);
@@ -461,15 +483,17 @@ describe('GameEngine', () => {
       const ongoingMatch: Match = {
         ...match,
         status: 'in-progress',
-        currentTurn: 'red',
-        redCaptured: new Array(10).fill(null).map((_, i) => ({
-          id: `black-${i}`,
-          type: 'Pawn',
-          color: 'black' as const,
-          isRevealed: true,
-          isDead: true,
-        })),
-        blackCaptured: [],
+        currentFactionIndex: 0, // red's turn
+        capturedByFaction: {
+          red: new Array(10).fill(null).map((_, i) => ({
+            id: `black-${i}`,
+            type: 'Pawn',
+            factionId: 'black',
+            isRevealed: true,
+            isDead: true,
+          })),
+          black: [],
+        },
       };
 
       const result = checkWinCondition(ongoingMatch);
@@ -482,7 +506,7 @@ describe('GameEngine', () => {
 
     beforeEach(() => {
       inProgressMatch = executeFlip(match, 0);
-      inProgressMatch.currentTurn = 'red';
+      inProgressMatch.currentFactionIndex = 0; // Set to red
     });
 
     it('should find all face-down pieces as flips', () => {
@@ -497,12 +521,12 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
       inProgressMatch.board[1] = null;
-      inProgressMatch.currentTurn = 'red';
+      inProgressMatch.currentFactionIndex = 0; // red's turn
 
       const legalMoves = getLegalMoves(inProgressMatch);
 
@@ -515,7 +539,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[0] = {
         id: 'red-rook-1',
         type: 'Rook',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -523,7 +547,7 @@ describe('GameEngine', () => {
       inProgressMatch.board[1] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -556,17 +580,16 @@ describe('GameEngine', () => {
       const stalemateMatch: Match = {
         ...match,
         status: 'in-progress',
-        currentTurn: 'red',
+        currentFactionIndex: 0, // red's turn
         board: new Array(32).fill(null),
-        redCaptured: [],
-        blackCaptured: [],
+        capturedByFaction: { red: [], black: [] },
       };
 
       // Place red pawn at corner (index 0)
       stalemateMatch.board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -577,7 +600,7 @@ describe('GameEngine', () => {
       stalemateMatch.board[1] = {
         id: 'black-rook-1',
         type: 'Rook',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -585,7 +608,7 @@ describe('GameEngine', () => {
       stalemateMatch.board[4] = {
         id: 'black-rook-2',
         type: 'Rook',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
@@ -604,7 +627,7 @@ describe('GameEngine', () => {
       const ongoingMatch: Match = {
         ...match,
         status: 'in-progress',
-        currentTurn: 'red',
+        currentFactionIndex: 0, // red's turn
       };
 
       // Board has face-down pieces (legal flips)
@@ -621,7 +644,7 @@ describe('GameEngine', () => {
       endedMatch = {
         ...match,
         status: 'ended',
-        winner: 'red',
+        winner: 'red', // Faction ID
       };
     });
 

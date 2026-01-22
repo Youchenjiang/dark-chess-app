@@ -1,13 +1,12 @@
 /**
- * BoardView - Main game board component (T023)
- * Renders 8x4 grid (portrait) and handles piece interactions (flip, move, capture)
+ * BoardView - Main game board container (T063)
+ * Conditionally renders ClassicBoardRenderer or IntersectionBoardRenderer based on game mode
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
 import { useGameStore } from '../store/gameStore';
-import { GridCell } from './GridCell';
-import { BOARD_ROWS, BOARD_COLS, indexToRowCol } from '../core/boardUtils';
+import { ClassicBoardRenderer } from './ClassicBoardRenderer';
+import { IntersectionBoardRenderer } from './IntersectionBoardRenderer';
 
 export const BoardView: React.FC = () => {
   const { match, flipPiece, movePiece, capturePiece } = useGameStore();
@@ -19,6 +18,7 @@ export const BoardView: React.FC = () => {
 
   const handleCellTap = (index: number) => {
     const piece = match.board[index];
+    const currentFactionId = match.activeFactions[match.currentFactionIndex];
 
     // If match is waiting for first flip, only allow flip
     if (match.status === 'waiting-first-flip') {
@@ -40,7 +40,7 @@ export const BoardView: React.FC = () => {
       }
 
       // If tapped on a face-up own piece, select it
-      if (piece !== null && piece.isRevealed && piece.color === match.currentTurn) {
+      if (piece !== null && piece.isRevealed && piece.factionId === currentFactionId) {
         setSelectedIndex(index);
         return;
       }
@@ -66,14 +66,14 @@ export const BoardView: React.FC = () => {
     }
 
     // If tapped on an enemy piece, try to capture
-    if (piece.isRevealed && piece.color !== selectedPiece.color) {
+    if (piece.isRevealed && piece.factionId !== selectedPiece.factionId) {
       capturePiece(selectedIndex, index);
       setSelectedIndex(null);
       return;
     }
 
     // If tapped on another own piece, switch selection
-    if (piece.isRevealed && piece.color === selectedPiece.color) {
+    if (piece.isRevealed && piece.factionId === selectedPiece.factionId) {
       setSelectedIndex(index);
       return;
     }
@@ -82,57 +82,24 @@ export const BoardView: React.FC = () => {
     setSelectedIndex(null);
   };
 
-  // Render board as 8 rows × 4 columns (portrait layout)
-  const renderBoard = () => {
-    const rows: JSX.Element[] = [];
+  // Conditionally render board based on game mode
+  if (match.mode.id === 'classic') {
+    return (
+      <ClassicBoardRenderer
+        board={match.board}
+        selectedIndex={selectedIndex}
+        onCellTap={handleCellTap}
+      />
+    );
+  } else if (match.mode.id === 'three-kingdoms') {
+    return (
+      <IntersectionBoardRenderer
+        board={match.board}
+        selectedIndex={selectedIndex}
+        onCellTap={handleCellTap}
+      />
+    );
+  }
 
-    for (let row = 0; row < BOARD_ROWS; row++) {
-      const cells: JSX.Element[] = [];
-
-      for (let col = 0; col < BOARD_COLS; col++) {
-        const index = row * BOARD_COLS + col;
-        const piece = match.board[index];
-
-        cells.push(
-          <GridCell
-            key={index}
-            piece={piece}
-            index={index}
-            onTap={handleCellTap}
-            isSelected={index === selectedIndex}
-          />
-        );
-      }
-
-      rows.push(
-        <View key={row} style={styles.row}>
-          {cells}
-        </View>
-      );
-    }
-
-    return rows;
-  };
-
-  return <View style={styles.board}>{renderBoard()}</View>;
+  return null;
 };
-
-const styles = StyleSheet.create({
-  board: {
-    padding: 16,
-    backgroundColor: '#F4E4C1', // Light tan (wooden board background)
-    borderWidth: 8,
-    borderColor: '#8B6914', // Dark goldenrod (board frame)
-    borderRadius: 4,
-    // Add subtle shadow for depth
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-});

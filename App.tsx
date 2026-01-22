@@ -4,16 +4,21 @@ import { useGameStore } from './src/store/gameStore';
 import { BoardView } from './src/components/BoardView';
 import { GameInfo } from './src/components/GameInfo';
 import { Toast } from './src/components/Toast';
+import { ModeSelector } from './src/components/ModeSelector';
 import { useEffect } from 'react';
 
 export default function App() {
-  const { match, newMatch, error, clearError } = useGameStore();
+  const { match, newMatch, loadPersistedMode, error, clearError } = useGameStore();
 
-  // Start a new match on mount
+  // Load persisted mode and start a new match on mount
   useEffect(() => {
-    if (!match) {
-      newMatch();
-    }
+    const initialize = async () => {
+      await loadPersistedMode();
+      if (!match) {
+        newMatch();
+      }
+    };
+    initialize();
   }, []);
 
   // Translate error messages to Traditional Chinese
@@ -32,6 +37,7 @@ export default function App() {
       'No piece at source index': '起始位置沒有棋子',
       'Piece not revealed': '棋子尚未翻開',
       "Not current player's turn": '現在不是你的回合',
+      "Not current faction's turn": '現在不是你的回合',
       'Destination not adjacent': '目標位置不相鄰',
       'Destination not empty': '目標位置不是空的',
       'No piece at attacker index': '進攻位置沒有棋子',
@@ -58,6 +64,7 @@ export default function App() {
             <Text style={styles.newGameButtonText}>新遊戲 (NEW GAME)</Text>
           </TouchableOpacity>
         </View>
+        <ModeSelector />
         <GameInfo />
         <BoardView />
       </View>

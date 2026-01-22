@@ -1,6 +1,6 @@
 /**
- * GameInfo - Display game status info (T024, T035)
- * Shows current turn, side assignment, captured pieces count
+ * GameInfo - Display game status info (Multi-mode support)
+ * Shows current turn, side assignment, captured pieces count, draw counter
  * All UI text in Traditional Chinese
  */
 
@@ -15,68 +15,102 @@ export const GameInfo: React.FC = () => {
     return null;
   }
 
-  // Game status text in Traditional Chinese (T046)
+  // Get current faction info
+  const currentFactionId = match.activeFactions[match.currentFactionIndex];
+  const currentFaction = match.factions.find((f) => f.id === currentFactionId);
+
+  // Faction display names
+  const getFactionDisplayName = (factionId: string): string => {
+    const factionNames: Record<string, string> = {
+      'red': '紅方',
+      'black': '黑方',
+      'team-a': '將軍陣營', // Generals' Army
+      'team-b': '紅國陣營', // Red Advisors
+      'team-c': '黑國陣營', // Black Advisors
+    };
+    return factionNames[factionId] || factionId;
+  };
+
+  // Game status text in Traditional Chinese
   let statusText = '';
   let winReasonText = '';
   
   if (match.status === 'waiting-first-flip') {
     statusText = '點擊任意棋子開始遊戲'; // Tap any piece to start game
-  } else if (match.status === 'in-progress' && match.currentTurn) {
-    const turnText = match.currentTurn === 'red' ? '紅方' : '黑方'; // Red side / Black side
-    statusText = `${turnText}回合`; // [Side] turn
+  } else if (match.status === 'in-progress') {
+    const turnText = getFactionDisplayName(currentFactionId);
+    statusText = `${turnText}回合`; // [Faction] turn
   } else if (match.status === 'ended' && match.winner) {
-    const winnerText = match.winner === 'red' ? '紅方' : '黑方';
-    statusText = `${winnerText}獲勝!`; // [Side] wins!
+    const winnerText = getFactionDisplayName(match.winner);
+    statusText = `${winnerText}獲勝!`; // [Faction] wins!
     
     // Add win reason if available
-    // Note: WinResult reason is not directly stored in Match, but can be inferred
-    // For now, we'll check captured counts to determine reason
-    const redCaptured = match.redCaptured.length;
-    const blackCaptured = match.blackCaptured.length;
+    const winnerCaptured = match.capturedByFaction[match.winner]?.length || 0;
+    const totalPiecesPerFaction = match.mode.id === 'classic' ? 16 : (match.mode.id === 'three-kingdoms' ? 22 : 0);
     
-    if (match.winner === 'red' && redCaptured >= 16) {
-      winReasonText = '(全數吃光)'; // (capture-all)
-    } else if (match.winner === 'black' && blackCaptured >= 16) {
+    if (winnerCaptured >= totalPiecesPerFaction) {
       winReasonText = '(全數吃光)'; // (capture-all)
     } else {
       winReasonText = '(對方無子可動)'; // (stalemate - opponent cannot move)
     }
+  } else if (match.status === 'ended' && !match.winner) {
+    statusText = '平局'; // Draw
+    winReasonText = '(和棋)'; // (draw condition)
   }
 
   // Determine turn indicator styling
   const getTurnStyle = () => {
-    if (match.status !== 'in-progress' || !match.currentTurn) {
+    if (match.status !== 'in-progress') {
       return styles.statusText;
     }
-    return match.currentTurn === 'red' 
-      ? [styles.statusText, styles.turnIndicatorRed] 
-      : [styles.statusText, styles.turnIndicatorBlack];
+
+    const factionColor = currentFaction?.color;
+    if (factionColor === 'red') {
+      return [styles.statusText, styles.turnIndicatorRed];
+    } else if (factionColor === 'black') {
+      return [styles.statusText, styles.turnIndicatorBlack];
+    } else if (factionColor === 'green') {
+      return [styles.statusText, styles.turnIndicatorGreen];
+    }
+    return styles.statusText;
   };
 
   return (
     <View style={styles.container}>
-      <View style={match.status === 'in-progress' && match.currentTurn ? styles.turnIndicatorContainer : {}}>
+      <View style={match.status === 'in-progress' ? styles.turnIndicatorContainer : {}}>
         <Text style={getTurnStyle()}>
           {statusText}
           {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
         </Text>
       </View>
 
+      {/* Draw counter for Three Kingdoms mode */}
+      {match.status === 'in-progress' && match.movesWithoutCapture !== null && (
+        <View style={styles.drawCounterContainer}>
+          <Text style={styles.drawCounterText}>
+            距離和棋: {match.movesWithoutCapture} 步
+          </Text>
+        </View>
+      )}
+
       {match.status === 'in-progress' && (
         <View style={styles.captureInfo}>
-          <Text style={styles.captureText}>
-            紅方俘獲: {match.redCaptured.length} 🔴
-          </Text>
-          <Text style={styles.captureText}>
-            黑方俘獲: {match.blackCaptured.length} ⚫
-          </Text>
+          {match.factions.map((faction) => {
+            const captured = match.capturedByFaction[faction.id]?.length || 0;
+            const emoji = faction.color === 'red' ? '🔴' : faction.color === 'black' ? '⚫' : '🟢';
+            return (
+              <Text key={faction.id} style={styles.captureText}>
+                {getFactionDisplayName(faction.id)}俘獲: {captured} {emoji}
+              </Text>
+            );
+          })}
         </View>
       )}
 
       {match.status === 'ended' && (
         <View style={styles.finalScoreInfo}>
           <Text style={styles.finalScoreText}>
-            最終比數: 紅 {match.redCaptured.length} - 黑 {match.blackCaptured.length}
+            最終比數: {match.factions.map((f) => `${getFactionDisplayName(f.id)} ${match.capturedByFaction[f.id]?.length || 0}`).join(' - ')}
           </Text>
         </View>
       )}
@@ -124,10 +158,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0', // Light gray background
     overflow: 'hidden',
   },
+  turnIndicatorGreen: {
+    color: '#2E7D32', // Deep green
+    fontSize: 28,
+    borderWidth: 3,
+    borderColor: '#2E7D32',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#E8F5E9', // Light green background
+    overflow: 'hidden',
+  },
   winReason: {
     fontSize: 18,
     color: '#666',
     fontWeight: 'normal',
+  },
+  drawCounterContainer: {
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFF3E0', // Light orange
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FF9800', // Orange
+  },
+  drawCounterText: {
+    fontSize: 14,
+    color: '#E65100', // Dark orange
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   captureInfo: {
     flexDirection: 'row',

@@ -6,7 +6,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { BoardView } from '../../../src/components/BoardView';
 import { useGameStore } from '../../../src/store/gameStore';
-import { Board } from '../../../src/core/types';
+import { Board, Match } from '../../../src/core/types';
+import { GAME_MODES, RED_FACTION, BLACK_FACTION } from '../../../src/core/GameModes';
 
 // Mock the store
 jest.mock('../../../src/store/gameStore');
@@ -20,23 +21,34 @@ describe('BoardView Integration', () => {
     jest.clearAllMocks();
   });
 
+  // Helper: Create a Classic mode match for testing
+  const createTestMatch = (overrides: Partial<Match> = {}): Match => {
+    return {
+      status: 'waiting-first-flip',
+      mode: GAME_MODES.classic,
+      factions: [RED_FACTION, BLACK_FACTION],
+      activeFactions: ['red', 'black'],
+      currentFactionIndex: 0,
+      winner: null,
+      board: new Array(32).fill(null),
+      capturedByFaction: { red: [], black: [] },
+      movesWithoutCapture: null,
+      ...overrides,
+    };
+  };
+
   describe('User Story 1: Flip to start game (T025)', () => {
     beforeEach(() => {
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
-          status: 'waiting-first-flip',
-          currentTurn: null,
-          winner: null,
+        match: createTestMatch({
           board: new Array(32).fill(null).map((_, i) => ({
             id: `piece-${i}`,
             type: 'Pawn',
-            color: i % 2 === 0 ? 'red' : 'black',
+            factionId: i % 2 === 0 ? 'red' : 'black',
             isRevealed: false,
             isDead: false,
           })),
-          redCaptured: [],
-          blackCaptured: [],
-        },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,
@@ -63,20 +75,17 @@ describe('BoardView Integration', () => {
       board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
 
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
+        match: createTestMatch({
           status: 'in-progress',
-          currentTurn: 'red',
-          winner: null,
+          currentFactionIndex: 0, // red's turn
           board,
-          redCaptured: [],
-          blackCaptured: [],
-        },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,
@@ -84,11 +93,11 @@ describe('BoardView Integration', () => {
     });
 
     it('should select piece and call movePiece when tapping empty cell', () => {
-      const { getByText, getByTestId } = render(<BoardView />);
+      const { getByTestId } = render(<BoardView />);
 
-      // Tap on revealed red pawn to select
-      const redPawn = getByText('兵');
-      fireEvent.press(redPawn.parent!);
+      // Tap on revealed red pawn at cell 0 to select
+      const cell0 = getByTestId('cell-0');
+      fireEvent.press(cell0);
 
       // Tap on adjacent empty cell (index 1)
       const emptyCell = getByTestId('cell-1');
@@ -104,27 +113,24 @@ describe('BoardView Integration', () => {
       board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
       board[1] = {
         id: 'black-king-1',
         type: 'King',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
 
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
+        match: createTestMatch({
           status: 'in-progress',
-          currentTurn: 'red',
-          winner: null,
+          currentFactionIndex: 0, // red's turn
           board,
-          redCaptured: [],
-          blackCaptured: [],
-        },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,
@@ -148,27 +154,24 @@ describe('BoardView Integration', () => {
       board[0] = {
         id: 'red-rook-1',
         type: 'Rook',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
       board[1] = {
         id: 'black-pawn-1',
         type: 'Pawn',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
 
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
+        match: createTestMatch({
           status: 'in-progress',
-          currentTurn: 'red',
-          winner: null,
+          currentFactionIndex: 0, // red's turn
           board,
-          redCaptured: [],
-          blackCaptured: [],
-        },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,
@@ -176,11 +179,11 @@ describe('BoardView Integration', () => {
     });
 
     it('should call capturePiece when selecting piece and tapping enemy piece', () => {
-      const { getByText, getByTestId } = render(<BoardView />);
+      const { getByTestId } = render(<BoardView />);
 
-      // Tap on red rook to select
-      const redRook = getByText('俥');
-      fireEvent.press(redRook.parent!);
+      // Tap on red rook at cell 0 to select
+      const cell0 = getByTestId('cell-0');
+      fireEvent.press(cell0);
 
       // Tap on adjacent black pawn (index 1)
       const enemyCell = getByTestId('cell-1');
@@ -196,7 +199,7 @@ describe('BoardView Integration', () => {
       board[0] = {
         id: 'red-rook-1',
         type: 'Rook',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -205,20 +208,18 @@ describe('BoardView Integration', () => {
       const capturedPieces = new Array(16).fill(null).map((_, i) => ({
         id: `black-${i}`,
         type: 'Pawn' as const,
-        color: 'black' as const,
+        factionId: 'black' as const,
         isRevealed: true,
         isDead: true,
       }));
 
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
+        match: createTestMatch({
           status: 'ended',
-          currentTurn: null,
           winner: 'red',
           board,
-          redCaptured: capturedPieces,
-          blackCaptured: [],
-        },
+          capturedByFaction: { red: capturedPieces, black: [] },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,
@@ -241,7 +242,7 @@ describe('BoardView Integration', () => {
       board[0] = {
         id: 'red-pawn-1',
         type: 'Pawn',
-        color: 'red',
+        factionId: 'red',
         isRevealed: true,
         isDead: false,
       };
@@ -250,20 +251,17 @@ describe('BoardView Integration', () => {
       board[1] = {
         id: 'black-king-1',
         type: 'King',
-        color: 'black',
+        factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
 
       (useGameStore as unknown as jest.Mock).mockReturnValue({
-        match: {
+        match: createTestMatch({
           status: 'ended',
-          currentTurn: null,
           winner: 'black',
           board,
-          redCaptured: [],
-          blackCaptured: [],
-        },
+        }),
         flipPiece: mockFlipPiece,
         movePiece: mockMovePiece,
         capturePiece: mockCapturePiece,

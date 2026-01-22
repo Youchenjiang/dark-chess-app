@@ -157,7 +157,85 @@ function createClassicMatch(mode: GameMode): Match {
 }
 
 /**
- * Create Three Kingdoms mode match (3 players, 45 intersections, 13 empty spots)
+ * Create "Four Corners" (四角) layout for Three Kingdoms mode
+ * Portrait 5×9 grid: 4 corner blocks (2×4 each), 13 empty center positions
+ * 
+ * Grid Layout (Portrait, 5 cols × 9 rows):
+ * ◆ ◆ ○ ◆ ◆  ← Row 0 (Top)
+ * ◆ ◆ ○ ◆ ◆  ← Row 1
+ * ◆ ◆ ○ ◆ ◆  ← Row 2
+ * ◆ ◆ ○ ◆ ◆  ← Row 3
+ * ○ ○ ○ ○ ○  ← Row 4 (Center - Empty)
+ * ◆ ◆ ○ ◆ ◆  ← Row 5
+ * ◆ ◆ ○ ◆ ◆  ← Row 6
+ * ◆ ◆ ○ ◆ ◆  ← Row 7
+ * ◆ ◆ ○ ◆ ◆  ← Row 8 (Bottom)
+ * 
+ * @param pieces - 32 shuffled pieces to distribute into 4 corners
+ * @returns Board with pieces in corners (45 elements, 32 pieces + 13 nulls)
+ */
+function createFourCornersLayout(pieces: Piece[]): Board {
+  const GRID_COLS = 5;
+  const GRID_ROWS = 9;
+  const BOARD_SIZE = 45;
+
+  // Initialize board with all nulls
+  const board: Board = new Array(BOARD_SIZE).fill(null);
+
+  // Define corner region indices for Portrait 5×9 grid
+  // Index = row * GRID_COLS + col
+  
+  // Top-Left corner (Rows 0-3, Cols 0-1): 8 pieces
+  const topLeft = [
+    0, 1,      // Row 0
+    5, 6,      // Row 1
+    10, 11,    // Row 2
+    15, 16,    // Row 3
+  ];
+
+  // Top-Right corner (Rows 0-3, Cols 3-4): 8 pieces
+  const topRight = [
+    3, 4,      // Row 0
+    8, 9,      // Row 1
+    13, 14,    // Row 2
+    18, 19,    // Row 3
+  ];
+
+  // Bottom-Left corner (Rows 5-8, Cols 0-1): 8 pieces
+  const bottomLeft = [
+    25, 26,    // Row 5
+    30, 31,    // Row 6
+    35, 36,    // Row 7
+    40, 41,    // Row 8
+  ];
+
+  // Bottom-Right corner (Rows 5-8, Cols 3-4): 8 pieces
+  const bottomRight = [
+    28, 29,    // Row 5
+    33, 34,    // Row 6
+    38, 39,    // Row 7
+    43, 44,    // Row 8
+  ];
+
+  // Combine all corner indices (32 total)
+  const cornerIndices = [...topLeft, ...topRight, ...bottomLeft, ...bottomRight];
+
+  // Distribute shuffled pieces to corner positions (8 pieces per corner)
+  for (let i = 0; i < cornerIndices.length; i++) {
+    board[cornerIndices[i]] = pieces[i];
+  }
+
+  // Center positions remain null (13 positions):
+  // - Col 2 (all rows): indices 2, 7, 12, 17, 22, 27, 32, 37, 42 (9 positions)
+  // - Row 4 (all cols): indices 20, 21, 22, 23, 24 (5 positions)
+  // Note: index 22 (Row 4, Col 2) is counted once
+  // Total: 9 + 5 - 1 = 13 empty positions
+
+  return board;
+}
+
+/**
+ * Create Three Kingdoms mode match (3 players, 45 intersections, Four Corners layout)
  */
 function createThreeKingdomsMatch(mode: GameMode): Match {
   // Create all pieces (12 + 10 + 10 = 32 pieces)
@@ -166,24 +244,11 @@ function createThreeKingdomsMatch(mode: GameMode): Match {
   const teamCPieces = createThreeKingdomsPiecesForFaction('team-c');
   const allPieces = [...teamAPieces, ...teamBPieces, ...teamCPieces];
 
-  // Shuffle all pieces
+  // Shuffle all 32 pieces before distributing to corners
   const shuffledPieces = shuffleArray(allPieces);
 
-  // Create board (45 intersections: 32 pieces + 13 nulls)
-  const board: Board = new Array(mode.boardSize);
-  
-  // Fill first 32 positions with shuffled pieces
-  for (let i = 0; i < allPieces.length; i++) {
-    board[i] = shuffledPieces[i];
-  }
-  
-  // Fill remaining 13 positions with nulls (empty intersections)
-  for (let i = allPieces.length; i < mode.boardSize; i++) {
-    board[i] = null;
-  }
-
-  // Shuffle the entire board (including nulls) for random distribution
-  const shuffledBoard = shuffleArray(board);
+  // Create board with Four Corners (四角) layout
+  const board = createFourCornersLayout(shuffledPieces);
 
   return {
     status: 'waiting-first-flip',
@@ -192,7 +257,7 @@ function createThreeKingdomsMatch(mode: GameMode): Match {
     activeFactions: ['team-a', 'team-b', 'team-c'],
     currentFactionIndex: 0,
     winner: null,
-    board: shuffledBoard,
+    board,
     capturedByFaction: { 'team-a': [], 'team-b': [], 'team-c': [] },
     movesWithoutCapture: 60, // Three Kingdoms has 60-move draw counter
   };

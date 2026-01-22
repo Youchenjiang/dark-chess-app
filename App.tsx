@@ -5,10 +5,11 @@ import { BoardView } from './src/components/BoardView';
 import { GameInfo } from './src/components/GameInfo';
 import { Toast } from './src/components/Toast';
 import { ModeSelector } from './src/components/ModeSelector';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function App() {
   const { match, newMatch, loadPersistedMode, error, clearError } = useGameStore();
+  const [showModeSelector, setShowModeSelector] = useState(true);
 
   // Load persisted mode and start a new match on mount
   useEffect(() => {
@@ -20,6 +21,16 @@ export default function App() {
     };
     initialize();
   }, []);
+
+  // Handle mode selection: hide mode selector after selection
+  const handleModeSelected = () => {
+    setShowModeSelector(false);
+  };
+
+  // Handle "Back to Menu": show mode selector and reset match
+  const handleBackToMenu = () => {
+    setShowModeSelector(true);
+  };
 
   // Translate error messages to Traditional Chinese
   const translateError = (errorMsg: string): string => {
@@ -60,11 +71,26 @@ export default function App() {
       <StatusBar style="auto" />
       <View style={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.newGameButton} onPress={newMatch} activeOpacity={0.8}>
-            <Text style={styles.newGameButtonText}>新遊戲 (NEW GAME)</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            {!showModeSelector && (
+              <TouchableOpacity 
+                style={styles.backButton} 
+                onPress={handleBackToMenu} 
+                activeOpacity={0.8}
+              >
+                <Text style={styles.backButtonText}>◀ 模式選擇</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity 
+              style={styles.newGameButton} 
+              onPress={newMatch} 
+              activeOpacity={0.8}
+            >
+              <Text style={styles.newGameButtonText}>新遊戲</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <ModeSelector />
+        {showModeSelector && <ModeSelector onSelect={handleModeSelected} />}
         <GameInfo />
         <BoardView />
       </View>
@@ -94,6 +120,31 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 8,
     marginTop: 5,
+    width: '100%',
+    paddingHorizontal: 16,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    backgroundColor: '#757575', // Gray
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  backButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   newGameButton: {
     backgroundColor: '#5D4037', // Dark wood brown

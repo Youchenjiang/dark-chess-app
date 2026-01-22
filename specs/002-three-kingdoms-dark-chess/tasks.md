@@ -59,29 +59,29 @@ This task list focuses on **Phase 5: Three Kingdoms Correction & Refinement**, i
 
 ### T004-T010: BoardGenerator Four Corners Logic
 
-- [ ] T004 [US1] Update `BoardGenerator.createInitialMatch` signature to use Four Corners layout for Three Kingdoms in src/core/BoardGenerator.ts
-- [ ] T005 [P] [US1] Create helper function `createFourCornersLayout(pieces: Piece[]): Board` in src/core/BoardGenerator.ts
-- [ ] T006 [US1] Define corner region indices for Portrait 5×9 grid (Top-Left, Top-Right, Bottom-Left, Bottom-Right) in src/core/BoardGenerator.ts
-- [ ] T007 [US1] Define center empty indices (Col 2 all rows + Row 4 all cols = 13 positions) in src/core/BoardGenerator.ts
-- [ ] T008 [US1] Implement piece shuffling: shuffle 32 pieces, distribute 8 pieces to each of 4 corners in src/core/BoardGenerator.ts
-- [ ] T009 [US1] Update board initialization to use `createFourCornersLayout` for Three Kingdoms mode in src/core/BoardGenerator.ts
+- [X] T004 [US1] Update `BoardGenerator.createInitialMatch` signature to use Four Corners layout for Three Kingdoms in src/core/BoardGenerator.ts
+- [X] T005 [P] [US1] Create helper function `createFourCornersLayout(pieces: Piece[]): Board` in src/core/BoardGenerator.ts
+- [X] T006 [US1] Define corner region indices for Portrait 5×9 grid (Top-Left, Top-Right, Bottom-Left, Bottom-Right) in src/core/BoardGenerator.ts
+- [X] T007 [US1] Define center empty indices (Col 2 all rows + Row 4 all cols = 13 positions) in src/core/BoardGenerator.ts
+- [X] T008 [US1] Implement piece shuffling: shuffle 32 pieces, distribute 8 pieces to each of 4 corners in src/core/BoardGenerator.ts
+- [X] T009 [US1] Update board initialization to use `createFourCornersLayout` for Three Kingdoms mode in src/core/BoardGenerator.ts
 - [ ] T010 [US1] Update BoardGenerator unit tests to verify Four Corners layout (4 corners occupied, 13 center empty) in tests/unit/core/BoardGenerator.test.ts
 
 ### T011-T018: IntersectionBoardRenderer Portrait Refactoring
 
-- [ ] T011 [US1] Update `GRID_COLS` and `GRID_ROWS` constants to Portrait orientation (5 cols × 9 rows) in src/components/IntersectionBoardRenderer.tsx
-- [ ] T012 [US1] Recalculate `INTERSECTION_SPACING` based on available screen HEIGHT (primary constraint for Portrait) in src/components/IntersectionBoardRenderer.tsx
-- [ ] T013 [US1] Update grid line rendering for Portrait (5 vertical lines, 9 horizontal lines) in src/components/IntersectionBoardRenderer.tsx
-- [ ] T014 [US1] Update piece positioning to use correct Portrait row/col calculations (index = row * 5 + col) in src/components/IntersectionBoardRenderer.tsx
-- [ ] T015 [US1] Add SafeAreaView wrapper to handle device notches and safe areas in src/components/IntersectionBoardRenderer.tsx
-- [ ] T016 [US1] Implement dynamic scaling fallback if board height exceeds available space in src/components/IntersectionBoardRenderer.tsx
-- [ ] T017 [US1] Update empty intersection dot rendering for 13 center positions in src/components/IntersectionBoardRenderer.tsx
+- [X] T011 [US1] Update `GRID_COLS` and `GRID_ROWS` constants to Portrait orientation (5 cols × 9 rows) in src/components/IntersectionBoardRenderer.tsx
+- [X] T012 [US1] Recalculate `INTERSECTION_SPACING` based on available screen HEIGHT (primary constraint for Portrait) in src/components/IntersectionBoardRenderer.tsx
+- [X] T013 [US1] Update grid line rendering for Portrait (5 vertical lines, 9 horizontal lines) in src/components/IntersectionBoardRenderer.tsx
+- [X] T014 [US1] Update piece positioning to use correct Portrait row/col calculations (index = row * 5 + col) in src/components/IntersectionBoardRenderer.tsx
+- [X] T015 [US1] Add SafeAreaView wrapper to handle device notches and safe areas in src/components/IntersectionBoardRenderer.tsx
+- [X] T016 [US1] Implement dynamic scaling fallback if board height exceeds available space in src/components/IntersectionBoardRenderer.tsx
+- [X] T017 [US1] Update empty intersection dot rendering for 13 center positions in src/components/IntersectionBoardRenderer.tsx
 - [ ] T018 [US1] Test Portrait rendering on multiple device sizes (iPhone 13, Galaxy S21, verify no overflow) in tests/integration/components/IntersectionBoardView.test.tsx
 
 ### T019-T021: Mode Selector UI Improvements
 
-- [ ] T019 [P] [US1] Add "Back/Exit" button to return to mode selection screen in src/components/ModeSelector.tsx
-- [ ] T020 [P] [US1] Update App.tsx to handle "Back/Exit" navigation (reset match, show mode selector) in App.tsx
+- [X] T019 [P] [US1] Add "Back/Exit" button to return to mode selection screen in src/components/ModeSelector.tsx
+- [X] T020 [P] [US1] Update App.tsx to handle "Back/Exit" navigation (reset match, show mode selector) in App.tsx
 - [ ] T021 [US1] Test mode switching with AsyncStorage persistence (Classic → Three Kingdoms → restart app → verify Three Kingdoms selected) in tests/integration/components/ModeSelector.test.tsx
 
 ---

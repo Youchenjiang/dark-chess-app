@@ -8,7 +8,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 import { GAME_MODES } from '../core/GameModes';
 
-export const ModeSelector: React.FC = () => {
+interface ModeSelectorProps {
+  onSelect?: () => void; // Optional callback after mode selection
+}
+
+export const ModeSelector: React.FC<ModeSelectorProps> = ({ onSelect }) => {
   const { currentMode, setMode, newMatch } = useGameStore();
 
   const handleModeSelect = async (modeId: 'classic' | 'three-kingdoms') => {
@@ -17,6 +21,11 @@ export const ModeSelector: React.FC = () => {
     // Set mode and start new match
     await setMode(mode);
     newMatch();
+    
+    // Call onSelect callback if provided
+    if (onSelect) {
+      onSelect();
+    }
   };
 
   return (

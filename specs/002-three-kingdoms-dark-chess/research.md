@@ -2,11 +2,19 @@
 
 **Feature**: `002-three-kingdoms-dark-chess`  
 **Date**: 2026-01-22  
+**Version**: 2.0 (Updated for critical corrections)  
 **Status**: Complete
 
 ## Research Overview
 
 This document consolidates all technical research decisions for implementing the Three Kingdoms Dark Chess variant. The primary challenge is refactoring the existing Classic Dark Chess codebase (001) to support multiple game modes while maintaining Clean Architecture principles and 100% test coverage.
+
+**Critical v2 Updates** (2026-01-22):
+1. **Portrait 5×9 Layout**: Board orientation changed to Portrait (5 columns × 9 rows aligned with phone's long edge)
+2. **Four Corners (四角) Setup**: Initial piece placement changed from random scatter to 4 corner blocks (2×4 each), 13 empty center
+3. **Dynamic Faction Assignment**: Players NOT pre-assigned; receive faction based on **First Flip Rule**
+4. **Army Chess (軍棋) Movement**: Ministers/Horses move **without blocking** (no 象眼/馬腳), Generals/Rooks/Cannons use rail movement (blocked by obstacles)
+5. **SafeAreaView & Dynamic Scaling**: UI must handle notches and fit entire board within screen
 
 ---
 
@@ -511,7 +519,233 @@ export type GameMode = typeof GAME_MODES[GameModeId];
 
 ---
 
-## Summary of Technical Decisions
+### 11. Portrait Board Orientation & Dynamic Scaling (NEW - v2)
+
+**Question**: How to ensure the Three Kingdoms board (5×9 intersections) fits within phone screen without scrolling?
+
+**Decision**: **Portrait orientation with dynamic scaling** based on available screen height
+
+**Rationale**:
+- Portrait orientation (5 columns × 9 rows) aligns with phone's long edge, maximizing vertical space
+- 9 rows are the primary constraint (tall grid requires careful scaling)
+- SafeAreaView handles notches and safe area insets automatically
+- Dynamic `INTERSECTION_SPACING` calculation prevents overflow
+- Fallback: reduce spacing if board exceeds available height
+
+**Implementation**:
+```typescript
+// IntersectionBoardRenderer.tsx
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const BOARD_PADDING = 24;
+const HEADER_FOOTER_SPACE = 280; // Header, mode selector, footer
+
+const availableHeight = screenHeight - HEADER_FOOTER_SPACE;
+const availableWidth = screenWidth - (BOARD_PADDING * 2);
+
+// Calculate intersection spacing (Portrait: height is primary constraint)
+const INTERSECTION_SPACING_Y = Math.floor(availableHeight / (GRID_ROWS - 1)); // 9 rows → 8 spacings
+const INTERSECTION_SPACING_X = Math.floor(availableWidth / (GRID_COLS - 1));  // 5 cols → 4 spacings
+const INTERSECTION_SPACING = Math.min(INTERSECTION_SPACING_X, INTERSECTION_SPACING_Y, 60);
+
+const PIECE_SIZE = Math.min(INTERSECTION_SPACING * 0.8, 48);
+```
+
+**Alternatives Considered**:
+- **Option A**: Landscape orientation (9×5) - Rejected, phone natural orientation is Portrait
+- **Option B**: Fixed spacing with scrolling - Rejected, poor UX (scrolling during gameplay)
+- **Option C**: Portrait with dynamic scaling - **SELECTED** for best UX
+
+---
+
+### 12. Four Corners (四角) Initial Layout (NEW - v2)
+
+**Question**: How to place 32 pieces on 45 intersections at game start?
+
+**Decision**: **"Four Corners" (四角) pattern** - 4 blocks of 2×4 pieces at corners, 13 empty center
+
+**Rationale**:
+- Creates strategic gameplay (players start in corners, fight for center)
+- Distinct visual pattern (not random scatter)
+- Mirrors traditional "Junqi" (軍棋 / Army Chess) setup
+- Center aisle (Col 2 + Row 4) forms strategic "crossroads"
+- Simpler to implement than random scatter with constraints
+
+**Corner Regions** (Portrait 5×9 grid, 0-indexed):
+```text
+◆ ◆ ○ ◆ ◆  ← Row 0 (Top)
+◆ ◆ ○ ◆ ◆  ← Row 1
+◆ ◆ ○ ◆ ◆  ← Row 2
+◆ ◆ ○ ◆ ◆  ← Row 3
+○ ○ ○ ○ ○  ← Row 4 (Center - Empty)
+◆ ◆ ○ ◆ ◆  ← Row 5
+◆ ◆ ○ ◆ ◆  ← Row 6
+◆ ◆ ○ ◆ ◆  ← Row 7
+◆ ◆ ○ ◆ ◆  ← Row 8 (Bottom)
+↑ ↑ ↑ ↑ ↑
+C C C C C
+o o | o o
+l l 2 l l
+0 1   3 4
+
+Top-Left: Cols 0-1, Rows 0-3 (8 pieces)
+Top-Right: Cols 3-4, Rows 0-3 (8 pieces)
+Bottom-Left: Cols 0-1, Rows 5-8 (8 pieces)
+Bottom-Right: Cols 3-4, Rows 5-8 (8 pieces)
+Center Empty: Col 2 (all rows) + Row 4 (all cols) = 13 positions
+```
+
+**Implementation**:
+```typescript
+// BoardGenerator.ts
+function createFourCornersLayout(pieces: Piece[]): Board {
+  const board: Board = Array(45).fill(null);
+  const shuffledPieces = shufflePieces(pieces);
+  
+  const topLeft = [0, 1, 5, 6, 10, 11, 15, 16]; // Indices for top-left 2×4 block
+  const topRight = [3, 4, 8, 9, 13, 14, 18, 19];
+  const bottomLeft = [25, 26, 30, 31, 35, 36, 40, 41];
+  const bottomRight = [28, 29, 33, 34, 38, 39, 43, 44];
+  
+  const corners = [...topLeft, ...topRight, ...bottomLeft, ...bottomRight];
+  
+  corners.forEach((index, i) => {
+    board[index] = shuffledPieces[i];
+  });
+  
+  return board; // Center positions remain null
+}
+```
+
+**Alternatives Considered**:
+- **Option A**: Random scatter across all 45 positions - Rejected, less strategic
+- **Option B**: Four Corners pattern - **SELECTED** for strategic depth
+- **Option C**: Pre-defined piece positions - Rejected, no replay value
+
+---
+
+### 13. Dynamic Faction Assignment (First Flip Rule) (NEW - v2)
+
+**Question**: Should players be pre-assigned to factions or dynamically assigned?
+
+**Decision**: **Dynamic assignment based on First Flip Rule**
+
+**Rationale**:
+- Classic Dark Chess uses dynamic assignment (players discover their pieces by flipping)
+- Three Kingdoms extends this: players don't know which faction they'll get until first flip
+- Adds strategic depth (players can't plan faction-specific strategies before game starts)
+- Maintains Dark Chess core mechanic (hidden information)
+- Follows traditional 3-player Dark Chess rules
+
+**First Flip Rule**:
+1. Game starts with "Player 1", "Player 2", "Player 3" (no faction assignment)
+2. Player 1 flips a piece → revealed piece's faction becomes Player 1's faction
+3. Player 2 flips a piece:
+   - If **distinct** from Player 1's faction → Player 2 assigned to that faction
+   - If **same** as Player 1's faction → turn passes, Player 2 **NOT assigned yet** (retry on next turn)
+4. Continue until all 3 players assigned to distinct factions
+
+**Implementation**:
+```typescript
+// gameStore.ts
+interface PlayerFactionMap {
+  'player-1'?: string; // Faction ID ("team-a", "team-b", or "team-c")
+  'player-2'?: string;
+  'player-3'?: string;
+}
+
+function flipPiece(match: Match, index: number, playerFactionMap: PlayerFactionMap): Match {
+  const piece = match.board[index];
+  piece.isRevealed = true;
+  
+  const currentPlayer = `player-${match.currentFactionIndex + 1}`;
+  
+  if (!playerFactionMap[currentPlayer]) {
+    const factionId = piece.factionId;
+    const factionAlreadyAssigned = Object.values(playerFactionMap).includes(factionId);
+    
+    if (!factionAlreadyAssigned) {
+      playerFactionMap[currentPlayer] = factionId; // Assign player to faction
+    } else {
+      // Faction already taken, player not assigned, turn passes
+    }
+  }
+  
+  // ... continue with normal flip logic
+}
+```
+
+**Alternatives Considered**:
+- **Option A**: Pre-assign factions at game start - Rejected, loses Dark Chess mechanic
+- **Option B**: Dynamic assignment (First Flip Rule) - **SELECTED** for Dark Chess authenticity
+- **Option C**: Player selects faction before game - Rejected, breaks hidden information
+
+---
+
+### 14. Army Chess (軍棋) Movement Mechanics (NEW - v2)
+
+**Question**: Should Ministers and Horses follow Classic blocking rules (象眼/馬腳) or Army Chess rules?
+
+**Decision**: **Army Chess (軍棋) style - Ministers/Horses move without blocking**
+
+**Rationale**:
+- Three Kingdoms mode is inspired by Army Chess (軍棋 / Junqi), which uses **rail movement** without blocking for some pieces
+- Classic blocking rules (象眼/馬腳) are too restrictive for 45-intersection board
+- Ministers and Horses gain mobility (more strategic options)
+- Generals/Rooks/Cannons still use rail movement **with blocking** (maintain balance)
+- Creates distinct gameplay from Classic (justifies new mode)
+
+**Movement Rules**:
+| Piece | Movement | Blocking? |
+|-------|----------|-----------|
+| **Ministers (相/象)** | 2 steps diagonal | ❌ NO (can jump over pieces) |
+| **Horses (馬/傌)** | Knight L-shape | ❌ NO (can jump over pieces) |
+| **Generals (帥/將)** | Infinite straight (rail) | ✅ YES (blocked by obstacles) |
+| **Rooks (俥/車)** | Infinite straight (rail) | ✅ YES (blocked by obstacles) |
+| **Cannons (炮/包)** | Infinite straight (rail) | ✅ YES (blocked, jumps 1 to capture) |
+| **Soldiers (兵/卒)** | 1 step orthogonal | N/A |
+| **Advisors (仕/士)** | 1 step diagonal | N/A |
+
+**Implementation**:
+```typescript
+// ThreeKingdomsRules.ts
+function validateMove(match: Match, fromIndex: number, toIndex: number): ValidationResult {
+  const piece = match.board[fromIndex];
+  
+  switch (piece.type) {
+    case 'Minister': {
+      const isDiagonal = checkDiagonal(fromIndex, toIndex, 2); // 2 steps diagonal
+      if (!isDiagonal) return { isValid: false, error: 'Minister must move 2 steps diagonal' };
+      // ✅ NO blocking check - Ministers can jump freely (Army Chess style)
+      return { isValid: true };
+    }
+    
+    case 'Horse': {
+      const isKnight = checkKnightMove(fromIndex, toIndex); // Knight L-shape
+      if (!isKnight) return { isValid: false, error: 'Horse must move in L-shape' };
+      // ✅ NO blocking check - Horses can jump freely (Army Chess style)
+      return { isValid: true };
+    }
+    
+    case 'King': { // General
+      const isStraight = checkStraightLine(fromIndex, toIndex);
+      if (!isStraight) return { isValid: false, error: 'General must move straight' };
+      // ❌ Blocking check required - Generals use rail movement (blocked by obstacles)
+      const isBlocked = checkBlockedPath(match.board, fromIndex, toIndex);
+      if (isBlocked) return { isValid: false, error: 'Path is blocked' };
+      return { isValid: true };
+    }
+  }
+}
+```
+
+**Alternatives Considered**:
+- **Option A**: Classic blocking rules (象眼/馬腳) - Rejected, too restrictive for 45 intersections
+- **Option B**: Army Chess rules (no blocking for Ministers/Horses) - **SELECTED** for gameplay balance
+- **Option C**: No blocking for any piece - Rejected, makes Generals/Rooks/Cannons overpowered
+
+---
+
+## Summary of Technical Decisions (Updated for v2)
 
 | Decision | Approach | Rationale |
 |----------|----------|-----------|
@@ -525,6 +759,10 @@ export type GameMode = typeof GAME_MODES[GameModeId];
 | **Testing** | Separate test suites per RuleSet | 100% coverage per mode |
 | **Persistence** | AsyncStorage for mode selection | Lightweight, built-in |
 | **Mode Registry** | Centralized `GAME_MODES` object | Single source of truth, extensible |
+| **Portrait Orientation (v2)** | Portrait 5×9 with dynamic scaling | Fits phone long edge, SafeAreaView handles notches |
+| **Four Corners Layout (v2)** | 4 blocks (2×4) at corners, 13 empty center | Strategic gameplay, distinct visual pattern |
+| **Dynamic Faction Assignment (v2)** | First Flip Rule (not pre-assigned) | Maintains Dark Chess hidden information mechanic |
+| **Army Chess Movement (v2)** | Ministers/Horses no blocking, Generals/Rooks/Cannons blocked | Balance mobility with strategic depth |
 
 ---
 

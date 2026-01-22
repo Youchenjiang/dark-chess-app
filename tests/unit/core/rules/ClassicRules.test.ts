@@ -52,6 +52,8 @@ describe('ClassicRules', () => {
       factions: [redFaction, blackFaction],
       activeFactions: ['red', 'black'],
       currentFactionIndex: 0, // Red's turn
+      currentPlayerIndex: 0, // Player 0's turn
+      playerFactionMap: { 0: 'red', 1: 'black' }, // Players assigned to factions
       winner: null,
       board,
       capturedByFaction: { red: [], black: [] },
@@ -85,7 +87,7 @@ describe('ClassicRules', () => {
       match.board[10] = createPiece('red-pawn-1', 'Pawn', 'red');
 
       const result = classicRules.validateMove(match, 10, 11);
-      expect(result).toEqual({ isValid: false, error: 'Match not in progress' });
+      expect(result).toEqual({ isValid: false, error: 'Match already ended' });
     });
 
     it('should reject move from invalid index', () => {

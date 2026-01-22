@@ -43,8 +43,15 @@ export class ClassicRules implements RuleSet {
    * Validate if a move action is legal
    */
   validateMove(match: Match, fromIndex: number, toIndex: number): ValidationResult {
-    if (match.status !== 'in-progress') {
-      return { isValid: false, error: 'Match not in progress' };
+    // Check if match has ended
+    if (match.status === 'ended') {
+      return { isValid: false, error: 'Match already ended' };
+    }
+
+    // Check if current player is assigned (allows movement during 'waiting-first-flip' if player is assigned)
+    const currentPlayerFaction = match.playerFactionMap[match.currentPlayerIndex];
+    if (currentPlayerFaction === null) {
+      return { isValid: false, error: 'Must flip a piece first' };
     }
 
     if (!isValidIndex(fromIndex) || !isValidIndex(toIndex)) {
@@ -81,8 +88,15 @@ export class ClassicRules implements RuleSet {
    * Validate if a capture action is legal
    */
   validateCapture(match: Match, fromIndex: number, toIndex: number): ValidationResult {
-    if (match.status !== 'in-progress') {
-      return { isValid: false, error: 'Match not in progress' };
+    // Check if match has ended
+    if (match.status === 'ended') {
+      return { isValid: false, error: 'Match already ended' };
+    }
+
+    // Check if current player is assigned (allows capture during 'waiting-first-flip' if player is assigned)
+    const currentPlayerFaction = match.playerFactionMap[match.currentPlayerIndex];
+    if (currentPlayerFaction === null) {
+      return { isValid: false, error: 'Must flip a piece first' };
     }
 
     if (!isValidIndex(fromIndex) || !isValidIndex(toIndex)) {

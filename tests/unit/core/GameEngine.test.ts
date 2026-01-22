@@ -152,7 +152,7 @@ describe('GameEngine', () => {
     it('should reject move when match not in progress', () => {
       const result = validateMove(match, 0, 1);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Match not in progress');
+      expect(result.error).toBe('Must flip a piece first');
     });
 
     it('should validate move to adjacent empty cell', () => {
@@ -657,13 +657,13 @@ describe('GameEngine', () => {
     it('should reject move when match ended', () => {
       const result = validateMove(endedMatch, 0, 1);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Match not in progress');
+      expect(result.error).toBe('Match already ended');
     });
 
     it('should reject capture when match ended', () => {
       const result = validateCapture(endedMatch, 0, 1);
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Match not in progress');
+      expect(result.error).toBe('Match already ended');
     });
   });
 
@@ -1006,6 +1006,68 @@ describe('GameEngine', () => {
       
       // Turn should rotate to Player 1
       expect(resultMatch.currentPlayerIndex).toBe(1);
+    });
+  });
+
+  describe('Movement Permission (Phase 8 Bug Fix)', () => {
+    it('[Phase 8 Bug Fix] should allow assigned player to move even when status is waiting-first-flip', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // Player 1 flips a red piece to get assigned
+      const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
+      let currentMatch = executeFlip(classicMatch, redPieceIdx);
+      
+      // Now P1 is assigned to red, P2 is assigned to black
+      expect(currentMatch.playerFactionMap[0]).toBe('red');
+      expect(currentMatch.playerFactionMap[1]).toBe('black');
+      expect(currentMatch.status).toBe('in-progress');
+      
+      // P1 (red) should be able to move the revealed red piece
+      const revealedRedPiece = currentMatch.board.findIndex(
+        p => p !== null && p.isRevealed && p.factionId === 'red'
+      )!;
+      
+      // Find an empty adjacent cell
+      const adjacentEmpty = currentMatch.board.findIndex((p, idx) => {
+        if (p !== null) return false;
+        // Check if adjacent to revealedRedPiece (simple adjacency check)
+        const rowDiff = Math.abs(Math.floor(idx / 4) - Math.floor(revealedRedPiece / 4));
+        const colDiff = Math.abs((idx % 4) - (revealedRedPiece % 4));
+        return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+      });
+      
+      if (adjacentEmpty !== -1) {
+        // Validation should succeed
+        const validation = validateMove(currentMatch, revealedRedPiece, adjacentEmpty);
+        expect(validation.isValid).toBe(true);
+        
+        // Execute move should succeed
+        const resultMatch = executeMove(currentMatch, revealedRedPiece, adjacentEmpty);
+        expect(resultMatch.board[adjacentEmpty]).not.toBeNull();
+        expect(resultMatch.board[adjacentEmpty]?.factionId).toBe('red');
+      }
+    });
+
+    it('[Phase 8 Bug Fix] should deny movement if current player is not assigned', () => {
+      const tkMatch = createInitialMatch(GAME_MODES.threeKingdoms);
+      
+      // Player 0 flips a team-a piece to get assigned
+      const teamAPieceIdx = tkMatch.board.findIndex(p => p !== null && p.factionId === 'team-a')!;
+      let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
+      
+      // Player 0 is assigned, but Player 1 is NOT assigned
+      expect(currentMatch.playerFactionMap[0]).toBe('team-a');
+      expect(currentMatch.playerFactionMap[1]).toBeNull();
+      expect(currentMatch.currentPlayerIndex).toBe(1); // Player 1's turn
+      expect(currentMatch.status).toBe('waiting-first-flip');
+      
+      // Player 1 (unassigned) tries to move a revealed piece - should fail
+      const revealedPiece = currentMatch.board.findIndex(p => p !== null && p.isRevealed)!;
+      const emptyIdx = currentMatch.board.findIndex(p => p === null)!;
+      
+      const validation = validateMove(currentMatch, revealedPiece, emptyIdx);
+      expect(validation.isValid).toBe(false);
+      expect(validation.error).toBe('Must flip a piece first');
     });
   });
 });

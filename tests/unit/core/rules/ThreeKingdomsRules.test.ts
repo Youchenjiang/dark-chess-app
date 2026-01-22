@@ -61,6 +61,8 @@ describe('ThreeKingdomsRules', () => {
       factions: [teamAFaction, teamBFaction, teamCFaction],
       activeFactions: ['team-a', 'team-b', 'team-c'],
       currentFactionIndex: 0, // Team A's turn
+      currentPlayerIndex: 0, // Player 0's turn
+      playerFactionMap: { 0: 'team-a', 1: 'team-b', 2: 'team-c' }, // Players assigned to factions
       winner: null,
       board,
       capturedByFaction: { 'team-a': [], 'team-b': [], 'team-c': [] },

@@ -73,6 +73,12 @@ export const GameInfo: React.FC = () => {
                   </Text>
                 </View>
                 <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+                {/* Active player turn indicator */}
+                {isActive && (
+                  <Text style={[styles.turnIndicatorText, { color: playerColor }]}>
+                    你的回合
+                  </Text>
+                )}
               </View>
 
               {/* Captured Pieces (Visual Mini-Icons) */}
@@ -203,6 +209,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6D4C41',
     marginTop: 4,
+  },
+  turnIndicatorText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 4,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 4,
+    overflow: 'hidden',
   },
   capturedPiecesContainer: {
     flexDirection: 'row',

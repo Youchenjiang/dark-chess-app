@@ -36,6 +36,7 @@ export function validateFlip(match: Match, pieceIndex: number): ValidationResult
 
 /**
  * Execute a flip action and return new match state
+ * For Three Kingdoms: implements dynamic faction assignment (First Flip Rule)
  */
 export function executeFlip(match: Match, pieceIndex: number): Match {
   const validation = validateFlip(match, pieceIndex);
@@ -49,15 +50,50 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
 
   let newStatus: Match['status'] = match.status;
   let newCurrentFactionIndex = match.currentFactionIndex;
+  let newCurrentPlayerIndex = match.currentPlayerIndex;
+  let newPlayerFactionMap = { ...match.playerFactionMap };
   let newMovesWithoutCapture = match.movesWithoutCapture;
 
+  // Check if this is Three Kingdoms mode
+  const isThreeKingdoms = match.mode.id === 'three-kingdoms';
+
   if (match.status === 'waiting-first-flip') {
-    // First flip: assign starting faction
-    newStatus = 'in-progress';
-    // Find the faction index for the flipped piece
-    newCurrentFactionIndex = match.activeFactions.indexOf(piece.factionId);
-    if (newCurrentFactionIndex === -1) {
-      newCurrentFactionIndex = 0; // Fallback
+    if (isThreeKingdoms) {
+      // Three Kingdoms: Dynamic faction assignment via First Flip Rule
+      const flippedFactionId = piece.factionId;
+      const currentPlayer = match.currentPlayerIndex;
+      
+      // Check if this faction is already taken by another player
+      const isFactionTaken = Object.entries(match.playerFactionMap).some(
+        ([playerIdx, factionId]) => 
+          Number(playerIdx) !== currentPlayer && factionId === flippedFactionId
+      );
+
+      if (!isFactionTaken) {
+        // Assign this faction to the current player
+        newPlayerFactionMap[currentPlayer] = flippedFactionId;
+      }
+      // Note: If faction is taken, player remains unassigned (retry next turn)
+
+      // Move to next player (rotate 0 -> 1 -> 2 -> 0)
+      newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+
+      // Check if all players are now assigned
+      const allAssigned = Object.values(newPlayerFactionMap).every((f) => f !== null);
+      if (allAssigned) {
+        // Transition to 'in-progress' and set first faction
+        newStatus = 'in-progress';
+        // Start with the faction of Player 0
+        const firstFactionId = newPlayerFactionMap[0]!;
+        newCurrentFactionIndex = match.activeFactions.indexOf(firstFactionId);
+      }
+    } else {
+      // Classic: First flip immediately starts the game with the flipped faction
+      newStatus = 'in-progress';
+      newCurrentFactionIndex = match.activeFactions.indexOf(piece.factionId);
+      if (newCurrentFactionIndex === -1) {
+        newCurrentFactionIndex = 0; // Fallback
+      }
     }
   } else if (match.status === 'in-progress') {
     // Subsequent flip: rotate turn
@@ -72,6 +108,8 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
     ...match,
     status: newStatus,
     currentFactionIndex: newCurrentFactionIndex,
+    currentPlayerIndex: newCurrentPlayerIndex,
+    playerFactionMap: newPlayerFactionMap,
     board: newBoard,
     movesWithoutCapture: newMovesWithoutCapture,
   };

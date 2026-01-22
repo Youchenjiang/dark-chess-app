@@ -712,4 +712,120 @@ describe('GameEngine', () => {
       expect(inProgressMatch.board).toEqual(originalBoard);
     });
   });
+
+  describe('Dynamic Faction Assignment (Three Kingdoms Mode - T026)', () => {
+    let tkMatch: Match;
+
+    beforeEach(() => {
+      tkMatch = createInitialMatch(GAME_MODES.threeKingdoms);
+    });
+
+    it('should initialize with all players unassigned (null)', () => {
+      expect(tkMatch.playerFactionMap[0]).toBeNull();
+      expect(tkMatch.playerFactionMap[1]).toBeNull();
+      expect(tkMatch.playerFactionMap[2]).toBeNull();
+      expect(tkMatch.currentPlayerIndex).toBe(0);
+      expect(tkMatch.status).toBe('waiting-first-flip');
+    });
+
+    it('should assign Player 0 to flipped faction on first flip', () => {
+      // Find a piece and flip it
+      const firstPieceIndex = tkMatch.board.findIndex((p) => p !== null)!;
+      const flippedPiece = tkMatch.board[firstPieceIndex]!;
+
+      const newMatch = executeFlip(tkMatch, firstPieceIndex);
+
+      // Player 0 should be assigned to the flipped piece's faction
+      expect(newMatch.playerFactionMap[0]).toBe(flippedPiece.factionId);
+      // Other players still unassigned
+      expect(newMatch.playerFactionMap[1]).toBeNull();
+      expect(newMatch.playerFactionMap[2]).toBeNull();
+      // Turn moves to Player 1
+      expect(newMatch.currentPlayerIndex).toBe(1);
+      // Still in assignment phase (not all players assigned)
+      expect(newMatch.status).toBe('waiting-first-flip');
+    });
+
+    it('should NOT assign player if flipped faction already taken', () => {
+      // Player 0 flips a piece
+      const firstPieceIndex = tkMatch.board.findIndex((p) => p !== null)!;
+      const firstPiece = tkMatch.board[firstPieceIndex]!;
+      let currentMatch = executeFlip(tkMatch, firstPieceIndex);
+
+      // Player 0 is now assigned to firstPiece.factionId
+      expect(currentMatch.playerFactionMap[0]).toBe(firstPiece.factionId);
+
+      // Player 1 tries to flip a piece of the SAME faction
+      const sameFactory = currentMatch.board.findIndex(
+        (p) => p !== null && !p.isRevealed && p.factionId === firstPiece.factionId
+      );
+
+      if (sameFactory !== -1) {
+        currentMatch = executeFlip(currentMatch, sameFactory);
+
+        // Player 1 should NOT be assigned (faction already taken by Player 0)
+        expect(currentMatch.playerFactionMap[1]).toBeNull();
+        // Turn should still move to Player 2
+        expect(currentMatch.currentPlayerIndex).toBe(2);
+      }
+    });
+
+    it('should transition to in-progress when all 3 players assigned', () => {
+      // We need to manually create a scenario where all 3 players get different factions
+      // This is tricky with random board, so let's simulate step by step
+
+      // Player 0 flips first piece (team-a)
+      const teamAPieceIdx = tkMatch.board.findIndex((p) => p !== null && p.factionId === 'team-a')!;
+      let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
+      expect(currentMatch.playerFactionMap[0]).toBe('team-a');
+      expect(currentMatch.status).toBe('waiting-first-flip');
+
+      // Player 1 flips second piece (team-b)
+      const teamBPieceIdx = currentMatch.board.findIndex(
+        (p) => p !== null && !p.isRevealed && p.factionId === 'team-b'
+      );
+      if (teamBPieceIdx !== -1) {
+        currentMatch = executeFlip(currentMatch, teamBPieceIdx);
+        expect(currentMatch.playerFactionMap[1]).toBe('team-b');
+        expect(currentMatch.status).toBe('waiting-first-flip');
+
+        // Player 2 flips third piece (team-c)
+        const teamCPieceIdx = currentMatch.board.findIndex(
+          (p) => p !== null && !p.isRevealed && p.factionId === 'team-c'
+        );
+        if (teamCPieceIdx !== -1) {
+          currentMatch = executeFlip(currentMatch, teamCPieceIdx);
+          expect(currentMatch.playerFactionMap[2]).toBe('team-c');
+          
+          // Now all 3 players are assigned → game transitions to 'in-progress'
+          expect(currentMatch.status).toBe('in-progress');
+          // Current faction should be the faction of Player 0
+          expect(currentMatch.currentFactionIndex).toBe(
+            currentMatch.activeFactions.indexOf('team-a')
+          );
+        }
+      }
+    });
+
+    it('should rotate player index correctly during assignment phase', () => {
+      // Player 0 flips
+      const firstIdx = tkMatch.board.findIndex((p) => p !== null)!;
+      let currentMatch = executeFlip(tkMatch, firstIdx);
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+
+      // Player 1 flips (may or may not get assigned, doesn't matter for rotation)
+      const secondIdx = currentMatch.board.findIndex((p) => p !== null && !p.isRevealed)!;
+      currentMatch = executeFlip(currentMatch, secondIdx);
+      expect(currentMatch.currentPlayerIndex).toBe(2);
+
+      // Player 2 flips
+      const thirdIdx = currentMatch.board.findIndex((p) => p !== null && !p.isRevealed)!;
+      currentMatch = executeFlip(currentMatch, thirdIdx);
+
+      // If not all assigned yet, should rotate back to Player 0
+      if (currentMatch.status === 'waiting-first-flip') {
+        expect(currentMatch.currentPlayerIndex).toBe(0);
+      }
+    });
+  });
 });

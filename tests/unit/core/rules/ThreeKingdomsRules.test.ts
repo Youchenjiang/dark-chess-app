@@ -333,4 +333,199 @@ describe('ThreeKingdomsRules', () => {
       expect(legalMoves.captures).toHaveLength(0);
     });
   });
+
+  describe('Army Chess Movement - Unblocked Movement (T031, T032, T033)', () => {
+    beforeEach(() => {
+      // Update helper function to include playerFactionMap and currentPlayerIndex
+      createTestMatch().playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      createTestMatch().currentPlayerIndex = 0;
+    });
+
+    it('should allow Minister to jump 2 diagonals over obstacles (unblocked)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Minister at (4, 2) - center (index = 4*5+2 = 22)
+      match.board[22] = createPiece('team-a-minister', 'Minister', 'team-a');
+      
+      // Place obstacle between Minister and target (blocking position for Classic, but NOT for Army Chess)
+      // Target: (2, 0) - index = 2*5+0 = 10 (2 diagonal steps up-left)
+      // Blocking position would be (3, 1) - index = 3*5+1 = 16 (in Classic, this would block)
+      match.board[16] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Empty target
+      match.board[10] = null;
+
+      // In Army Chess, Minister should be able to jump over the obstacle
+      const result = tkRules.validateMove(match, 22, 10);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should allow Horse to perform L-shape move over obstacles (unblocked)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Horse at (4, 2) - center (index = 4*5+2 = 22)
+      match.board[22] = createPiece('team-a-horse', 'Horse', 'team-a');
+      
+      // Place obstacle in the "pivot" position (would block in Classic Chess)
+      // Target: (3, 0) - index = 3*5+0 = 15 (L-shape: 1 up, 2 left)
+      // Pivot position would be (4, 1) or (3, 2) - index 21 or 17 (in Classic, this would block)
+      match.board[21] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Empty target
+      match.board[15] = null;
+
+      // In Army Chess, Horse should be able to jump over the obstacle
+      const result = tkRules.validateMove(match, 22, 15);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should block General infinite straight move by obstacles', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place General at (4, 2) - center (index 22)
+      match.board[22] = createPiece('team-a-king', 'King', 'team-a'); // General = King type
+      
+      // Place obstacle between General and target
+      // Target: (0, 2) - index 2 (4 steps up)
+      // Blocking position: (2, 2) - index 12 (in the path)
+      match.board[12] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Empty target
+      match.board[2] = null;
+
+      // General should be BLOCKED by the obstacle
+      const result = tkRules.validateMove(match, 22, 2);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Illegal move for this piece type');
+    });
+
+    it('should block Rook infinite straight move by obstacles', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Rook at (4, 2) - center (index 22)
+      match.board[22] = createPiece('team-a-rook', 'Rook', 'team-a');
+      
+      // Place obstacle between Rook and target
+      // Target: (4, 0) - index 20 (2 steps left)
+      // Blocking position: (4, 1) - index 21 (in the path)
+      match.board[21] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Empty target
+      match.board[20] = null;
+
+      // Rook should be BLOCKED by the obstacle
+      const result = tkRules.validateMove(match, 22, 20);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Illegal move for this piece type');
+    });
+
+    it('should allow Cannon to capture with exactly one screen (unblocked screen counting)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Cannon at (4, 2) - center (index 22)
+      match.board[22] = createPiece('team-a-cannon', 'Cannon', 'team-a');
+      
+      // Place exactly one screen between Cannon and target
+      // Target: (4, 4) - index 24 (2 steps right, enemy piece)
+      match.board[24] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Screen: (4, 3) - index 23 (1 step right)
+      match.board[23] = createPiece('team-c-pawn', 'Pawn', 'team-c');
+
+      // Cannon should be able to capture with exactly one screen
+      const result = tkRules.validateCapture(match, 22, 24);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should reject Cannon capture with zero screens (adjacent)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Cannon at (4, 2) - center (index 22)
+      match.board[22] = createPiece('team-a-cannon', 'Cannon', 'team-a');
+      
+      // Place adjacent enemy (no screen)
+      // Target: (4, 3) - index 23 (1 step right, adjacent)
+      match.board[23] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+
+      // Cannon should be rejected (cannot capture adjacent)
+      const result = tkRules.validateCapture(match, 22, 23);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Cannon cannot capture adjacent piece');
+    });
+
+    it('should reject Cannon capture with two screens', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Cannon at (4, 0) - index 20
+      match.board[20] = createPiece('team-a-cannon', 'Cannon', 'team-a');
+      
+      // Place two screens between Cannon and target
+      // Target: (4, 4) - index 24 (4 steps right, enemy piece)
+      match.board[24] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+      
+      // Screen 1: (4, 1) - index 21
+      match.board[21] = createPiece('team-c-pawn', 'Pawn', 'team-c');
+      // Screen 2: (4, 3) - index 23
+      match.board[23] = createPiece('team-a-guard', 'Guard', 'team-a');
+
+      // Cannon should be rejected (requires exactly one screen)
+      const result = tkRules.validateCapture(match, 20, 24);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Cannon requires exactly one screen to capture');
+    });
+
+    it('should allow Minister to capture with 2-diagonal jump (unblocked)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Minister at (4, 2) - center (index = 4*5+2 = 22)
+      match.board[22] = createPiece('team-a-minister', 'Minister', 'team-a');
+      
+      // Place obstacle in diagonal path (would block in Classic)
+      // Blocking position: (3, 1) - index = 3*5+1 = 16
+      match.board[16] = createPiece('team-c-pawn', 'Pawn', 'team-c');
+      
+      // Place enemy at 2-diagonal target (2, 0) - index = 2*5+0 = 10
+      match.board[10] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+
+      // In Army Chess, Minister should be able to capture over the obstacle
+      const result = tkRules.validateCapture(match, 22, 10);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('should allow Horse to capture with L-shape (unblocked)', () => {
+      const match = createTestMatch();
+      match.playerFactionMap = { 0: 'team-a', 1: 'team-b', 2: 'team-c' };
+      match.currentPlayerIndex = 0;
+      
+      // Place Horse at (4, 2) - center (index = 4*5+2 = 22)
+      match.board[22] = createPiece('team-a-horse', 'Horse', 'team-a');
+      
+      // Place obstacle in "pivot" position (would block in Classic)
+      // Pivot: (4, 1) - index = 4*5+1 = 21
+      match.board[21] = createPiece('team-c-pawn', 'Pawn', 'team-c');
+      
+      // Place enemy at L-shape target (3, 0) - index = 3*5+0 = 15
+      match.board[15] = createPiece('team-b-pawn', 'Pawn', 'team-b');
+
+      // In Army Chess, Horse should be able to capture over the obstacle
+      const result = tkRules.validateCapture(match, 22, 15);
+      expect(result.isValid).toBe(true);
+    });
+  });
 });

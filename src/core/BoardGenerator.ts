@@ -149,6 +149,8 @@ function createClassicMatch(mode: GameMode): Match {
     factions: [RED_FACTION, BLACK_FACTION],
     activeFactions: ['red', 'black'],
     currentFactionIndex: 0,
+    currentPlayerIndex: 0, // Classic uses factionIndex directly
+    playerFactionMap: { 0: 'red', 1: 'black' }, // Classic: players pre-assigned
     winner: null,
     board,
     capturedByFaction: { red: [], black: [] },
@@ -255,7 +257,9 @@ function createThreeKingdomsMatch(mode: GameMode): Match {
     mode,
     factions: [TEAM_A_FACTION, TEAM_B_FACTION, TEAM_C_FACTION],
     activeFactions: ['team-a', 'team-b', 'team-c'],
-    currentFactionIndex: 0,
+    currentFactionIndex: 0, // Will be set after First Flip
+    currentPlayerIndex: 0, // Player 0 starts (will rotate 0 -> 1 -> 2)
+    playerFactionMap: { 0: null, 1: null, 2: null }, // Three Kingdoms: dynamic assignment via First Flip
     winner: null,
     board,
     capturedByFaction: { 'team-a': [], 'team-b': [], 'team-c': [] },

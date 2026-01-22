@@ -59,6 +59,8 @@ export interface Match {
   factions: Faction[];
   activeFactions: string[]; // Non-eliminated faction IDs
   currentFactionIndex: number; // Index into activeFactions
+  currentPlayerIndex: number; // For Three Kingdoms: current player (0, 1, 2) - used during First Flip phase
+  playerFactionMap: Record<number, string | null>; // Player index -> Faction ID (null = unassigned)
   winner: string | null; // Winning faction ID
   board: Board;
   capturedByFaction: Record<string, Piece[]>; // Captured pieces per faction

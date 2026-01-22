@@ -36,7 +36,22 @@ export const GameInfo: React.FC = () => {
   let winReasonText = '';
   
   if (match.status === 'waiting-first-flip') {
-    statusText = '點擊任意棋子開始遊戲'; // Tap any piece to start game
+    // For Three Kingdoms: show player turn if in dynamic assignment phase
+    if (match.mode.id === 'three-kingdoms') {
+      const currentPlayer = match.currentPlayerIndex;
+      const currentPlayerFaction = match.playerFactionMap[currentPlayer];
+      
+      if (currentPlayerFaction === null) {
+        // Player not yet assigned - show player number
+        statusText = `玩家 ${currentPlayer + 1} 回合 - 翻開棋子選擇陣營`; // Player X turn - flip to choose faction
+      } else {
+        // Player already assigned - show "waiting for others"
+        statusText = `等待其他玩家選擇陣營...`; // Waiting for other players
+      }
+    } else {
+      // Classic mode
+      statusText = '點擊任意棋子開始遊戲'; // Tap any piece to start game
+    }
   } else if (match.status === 'in-progress') {
     const turnText = getFactionDisplayName(currentFactionId);
     statusText = `${turnText}回合`; // [Faction] turn

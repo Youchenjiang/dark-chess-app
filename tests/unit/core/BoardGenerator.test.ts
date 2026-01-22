@@ -27,16 +27,16 @@ describe('BoardGenerator', () => {
 
     it('should have exactly 16 red and 16 black pieces', () => {
       const match = createInitialMatch();
-      const redCount = match.board.filter((p) => p?.color === 'red').length;
-      const blackCount = match.board.filter((p) => p?.color === 'black').length;
+      const redCount = match.board.filter((p) => p?.factionId === 'red').length;
+      const blackCount = match.board.filter((p) => p?.factionId === 'black').length;
       expect(redCount).toBe(TOTAL_PIECES_PER_COLOR);
       expect(blackCount).toBe(TOTAL_PIECES_PER_COLOR);
     });
 
-    it('should have correct piece type distribution for each color', () => {
+    it('should have correct piece type distribution for each faction', () => {
       const match = createInitialMatch();
-      const redPieces = match.board.filter((p) => p?.color === 'red');
-      const blackPieces = match.board.filter((p) => p?.color === 'black');
+      const redPieces = match.board.filter((p) => p?.factionId === 'red');
+      const blackPieces = match.board.filter((p) => p?.factionId === 'black');
 
       // Check red pieces
       for (const [type, count] of Object.entries(PIECE_COUNTS) as [PieceType, number][]) {
@@ -54,14 +54,14 @@ describe('BoardGenerator', () => {
     it('should initialize match status as waiting-first-flip', () => {
       const match = createInitialMatch();
       expect(match.status).toBe('waiting-first-flip');
-      expect(match.currentTurn).toBe(null);
+      expect(match.currentFactionIndex).toBe(0);
       expect(match.winner).toBe(null);
     });
 
-    it('should have empty captured arrays', () => {
+    it('should have empty captured maps', () => {
       const match = createInitialMatch();
-      expect(match.redCaptured).toEqual([]);
-      expect(match.blackCaptured).toEqual([]);
+      expect(match.capturedByFaction['red']).toEqual([]);
+      expect(match.capturedByFaction['black']).toEqual([]);
     });
 
     it('should have unique piece IDs', () => {

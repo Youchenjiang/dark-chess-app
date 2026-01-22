@@ -827,5 +827,70 @@ describe('GameEngine', () => {
         expect(currentMatch.currentPlayerIndex).toBe(0);
       }
     });
+
+    it('should NOT change faction if player is already assigned (FACTION LOCKING)', () => {
+      // Player 0 flips a team-a piece
+      const teamAPieceIdx = tkMatch.board.findIndex((p) => p !== null && p.factionId === 'team-a')!;
+      let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
+      
+      // Player 0 is now assigned to team-a
+      expect(currentMatch.playerFactionMap[0]).toBe('team-a');
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+
+      // Player 1 flips a team-b piece
+      const teamBPieceIdx = currentMatch.board.findIndex(
+        (p) => p !== null && !p.isRevealed && p.factionId === 'team-b'
+      )!;
+      currentMatch = executeFlip(currentMatch, teamBPieceIdx);
+      
+      // Player 1 is now assigned to team-b
+      expect(currentMatch.playerFactionMap[1]).toBe('team-b');
+      expect(currentMatch.currentPlayerIndex).toBe(2);
+
+      // Player 2 flips a team-c piece
+      const teamCPieceIdx = currentMatch.board.findIndex(
+        (p) => p !== null && !p.isRevealed && p.factionId === 'team-c'
+      )!;
+      currentMatch = executeFlip(currentMatch, teamCPieceIdx);
+      
+      // Player 2 is now assigned to team-c
+      expect(currentMatch.playerFactionMap[2]).toBe('team-c');
+      
+      // Game should transition to in-progress
+      expect(currentMatch.status).toBe('in-progress');
+      
+      // Now back to Player 0's turn (via rotation logic)
+      // Player 0 is currently assigned to team-a
+      // Player 0 tries to flip a team-b piece (different faction)
+      // This should NOT change Player 0's faction from team-a to team-b
+      
+      // We need to simulate the game continuing to a point where Player 0 gets another turn
+      // For simplicity, let's manually test the executeFlip logic with a modified match
+      const testMatch = {
+        ...currentMatch,
+        status: 'waiting-first-flip' as const, // Manually set back to assignment phase
+        currentPlayerIndex: 0, // Player 0's turn
+        playerFactionMap: {
+          0: 'team-a', // Player 0 already assigned to team-a
+          1: null, // Player 1 not assigned (for this test scenario)
+          2: null, // Player 2 not assigned (for this test scenario)
+        },
+      };
+      
+      // Player 0 (already assigned to team-a) tries to flip a team-b piece
+      const anotherTeamBPiece = testMatch.board.findIndex(
+        (p) => p !== null && !p.isRevealed && p.factionId === 'team-b'
+      );
+      
+      if (anotherTeamBPiece !== -1) {
+        const resultMatch = executeFlip(testMatch, anotherTeamBPiece);
+        
+        // Player 0's faction should STILL be team-a (not changed to team-b)
+        expect(resultMatch.playerFactionMap[0]).toBe('team-a');
+        
+        // Turn should move to Player 1
+        expect(resultMatch.currentPlayerIndex).toBe(1);
+      }
+    });
   });
 });

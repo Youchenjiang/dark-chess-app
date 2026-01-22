@@ -15,38 +15,38 @@ import {
 } from './GameModes';
 
 /**
- * Piece distribution for Three Kingdoms mode
- * Team A (Green - Generals' Army): 12 pieces (1 將, 2 士, 2 相, 2 車, 2 馬, 1 炮, 2 兵)
- * Team B (Red - Red Advisors): 10 pieces (1 帥, 2 士, 2 車, 2 馬, 1 炮, 2 卒)
- * Team C (Black - Black Advisors): 10 pieces (same as Team B)
+ * Piece distribution for Three Kingdoms mode (STRICT DEFINITION)
+ * Team A (Green - Generals' Army): 12 pieces (2 Generals + 10 Soldiers ONLY)
+ * Team B (Red - Red Advisors): 10 pieces (2 Advisors + 2 Ministers + 2 Rooks + 2 Horses + 2 Cannons)
+ * Team C (Black - Black Advisors): 10 pieces (2 Advisors + 2 Ministers + 2 Rooks + 2 Horses + 2 Cannons)
  */
 const THREE_KINGDOMS_PIECE_COUNTS = {
   'team-a': {
-    King: 1,    // 將
-    Guard: 2,   // 士
-    Minister: 2, // 相
-    Rook: 2,    // 車
-    Horse: 2,   // 馬
-    Cannon: 1,  // 炮
-    Pawn: 2,    // 兵
+    King: 2,    // 2 Generals (將/帥)
+    Guard: 0,   // 0 Advisors
+    Minister: 0, // 0 Ministers
+    Rook: 0,    // 0 Rooks
+    Horse: 0,   // 0 Horses
+    Cannon: 0,  // 0 Cannons
+    Pawn: 10,   // 10 Soldiers (兵/卒)
   },
   'team-b': {
-    King: 1,    // 帥
-    Guard: 2,   // 士
-    Minister: 0, // 0 相
-    Rook: 2,    // 車
-    Horse: 2,   // 馬
-    Cannon: 1,  // 炮
-    Pawn: 2,    // 卒
+    King: 0,    // 0 Generals (Team B has no Generals)
+    Guard: 2,   // 2 Advisors (士)
+    Minister: 2, // 2 Ministers (相)
+    Rook: 2,    // 2 Rooks (車)
+    Horse: 2,   // 2 Horses (馬)
+    Cannon: 2,  // 2 Cannons (炮)
+    Pawn: 0,    // 0 Soldiers (Team B has no Soldiers)
   },
   'team-c': {
-    King: 1,    // 帥
-    Guard: 2,   // 士
-    Minister: 0, // 0 象
-    Rook: 2,    // 車
-    Horse: 2,   // 馬
-    Cannon: 1,  // 炮
-    Pawn: 2,    // 卒
+    King: 0,    // 0 Generals (Team C has no Generals)
+    Guard: 2,   // 2 Advisors (士)
+    Minister: 2, // 2 Ministers (象)
+    Rook: 2,    // 2 Rooks (車)
+    Horse: 2,   // 2 Horses (馬)
+    Cannon: 2,  // 2 Cannons (包)
+    Pawn: 0,    // 0 Soldiers (Team C has no Soldiers)
   },
 };
 

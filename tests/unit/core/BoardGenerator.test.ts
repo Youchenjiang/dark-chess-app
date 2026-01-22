@@ -87,4 +87,99 @@ describe('BoardGenerator', () => {
       expect(match1.board).not.toBe(match2.board); // Different instances
     });
   });
+
+  describe('createInitialMatch - Three Kingdoms Mode', () => {
+    const { GAME_MODES } = require('../../../src/core/GameModes');
+
+    it('should create a Three Kingdoms match with 45 positions', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      expect(match.board.length).toBe(45);
+    });
+
+    it('should have exactly 32 pieces (12 Team A + 10 Team B + 10 Team C)', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      const pieces = match.board.filter((p) => p !== null);
+      expect(pieces.length).toBe(32);
+
+      const teamA = pieces.filter((p) => p?.factionId === 'team-a');
+      const teamB = pieces.filter((p) => p?.factionId === 'team-b');
+      const teamC = pieces.filter((p) => p?.factionId === 'team-c');
+
+      expect(teamA.length).toBe(12);
+      expect(teamB.length).toBe(10);
+      expect(teamC.length).toBe(10);
+    });
+
+    it('should have Team A (Green) with ONLY 2 Generals + 10 Soldiers', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      const teamAPieces = match.board.filter((p) => p?.factionId === 'team-a');
+
+      // Count piece types
+      const generals = teamAPieces.filter((p) => p?.type === 'King').length;
+      const soldiers = teamAPieces.filter((p) => p?.type === 'Pawn').length;
+      const advisors = teamAPieces.filter((p) => p?.type === 'Guard').length;
+      const ministers = teamAPieces.filter((p) => p?.type === 'Minister').length;
+      const rooks = teamAPieces.filter((p) => p?.type === 'Rook').length;
+      const horses = teamAPieces.filter((p) => p?.type === 'Horse').length;
+      const cannons = teamAPieces.filter((p) => p?.type === 'Cannon').length;
+
+      expect(generals).toBe(2);
+      expect(soldiers).toBe(10);
+      expect(advisors).toBe(0);
+      expect(ministers).toBe(0);
+      expect(rooks).toBe(0);
+      expect(horses).toBe(0);
+      expect(cannons).toBe(0);
+    });
+
+    it('should have Team B (Red) with ONLY 2 of each support piece type (no Generals, no Soldiers)', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      const teamBPieces = match.board.filter((p) => p?.factionId === 'team-b');
+
+      // Count piece types
+      const generals = teamBPieces.filter((p) => p?.type === 'King').length;
+      const soldiers = teamBPieces.filter((p) => p?.type === 'Pawn').length;
+      const advisors = teamBPieces.filter((p) => p?.type === 'Guard').length;
+      const ministers = teamBPieces.filter((p) => p?.type === 'Minister').length;
+      const rooks = teamBPieces.filter((p) => p?.type === 'Rook').length;
+      const horses = teamBPieces.filter((p) => p?.type === 'Horse').length;
+      const cannons = teamBPieces.filter((p) => p?.type === 'Cannon').length;
+
+      expect(generals).toBe(0);
+      expect(soldiers).toBe(0);
+      expect(advisors).toBe(2);
+      expect(ministers).toBe(2);
+      expect(rooks).toBe(2);
+      expect(horses).toBe(2);
+      expect(cannons).toBe(2);
+    });
+
+    it('should have Team C (Black) with same distribution as Team B', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      const teamCPieces = match.board.filter((p) => p?.factionId === 'team-c');
+
+      // Count piece types
+      const generals = teamCPieces.filter((p) => p?.type === 'King').length;
+      const soldiers = teamCPieces.filter((p) => p?.type === 'Pawn').length;
+      const advisors = teamCPieces.filter((p) => p?.type === 'Guard').length;
+      const ministers = teamCPieces.filter((p) => p?.type === 'Minister').length;
+      const rooks = teamCPieces.filter((p) => p?.type === 'Rook').length;
+      const horses = teamCPieces.filter((p) => p?.type === 'Horse').length;
+      const cannons = teamCPieces.filter((p) => p?.type === 'Cannon').length;
+
+      expect(generals).toBe(0);
+      expect(soldiers).toBe(0);
+      expect(advisors).toBe(2);
+      expect(ministers).toBe(2);
+      expect(rooks).toBe(2);
+      expect(horses).toBe(2);
+      expect(cannons).toBe(2);
+    });
+
+    it('should have 13 empty positions (45 - 32)', () => {
+      const match = createInitialMatch(GAME_MODES.threeKingdoms);
+      const emptyPositions = match.board.filter((p) => p === null);
+      expect(emptyPositions.length).toBe(13);
+    });
+  });
 });

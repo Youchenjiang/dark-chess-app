@@ -62,18 +62,24 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
       // Three Kingdoms: Dynamic faction assignment via First Flip Rule
       const flippedFactionId = piece.factionId;
       const currentPlayer = match.currentPlayerIndex;
+      const currentPlayerFaction = match.playerFactionMap[currentPlayer];
       
-      // Check if this faction is already taken by another player
-      const isFactionTaken = Object.entries(match.playerFactionMap).some(
-        ([playerIdx, factionId]) => 
-          Number(playerIdx) !== currentPlayer && factionId === flippedFactionId
-      );
+      // FACTION LOCKING: If current player is already assigned, DO NOT change their faction
+      if (currentPlayerFaction === null) {
+        // Player NOT assigned yet - execute First Flip assignment logic
+        // Check if this faction is already taken by another player
+        const isFactionTaken = Object.entries(match.playerFactionMap).some(
+          ([playerIdx, factionId]) => 
+            Number(playerIdx) !== currentPlayer && factionId === flippedFactionId
+        );
 
-      if (!isFactionTaken) {
-        // Assign this faction to the current player
-        newPlayerFactionMap[currentPlayer] = flippedFactionId;
+        if (!isFactionTaken) {
+          // Assign this faction to the current player
+          newPlayerFactionMap[currentPlayer] = flippedFactionId;
+        }
+        // Note: If faction is taken, player remains unassigned (retry next turn)
       }
-      // Note: If faction is taken, player remains unassigned (retry next turn)
+      // If player IS assigned, skip assignment logic (faction is locked)
 
       // Move to next player (rotate 0 -> 1 -> 2 -> 0)
       newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;

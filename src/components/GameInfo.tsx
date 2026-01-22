@@ -99,49 +99,47 @@ export const GameInfo: React.FC = () => {
         </Text>
       </View>
 
-      {/* Player Avatars for Three Kingdoms mode */}
-      {match.mode.id === 'three-kingdoms' && (
-        <View style={styles.playerAvatarsContainer}>
-          {[0, 1, 2].map((playerIndex) => {
-            const assignedFactionId = match.playerFactionMap[playerIndex];
-            const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
-            const isActive = match.currentPlayerIndex === playerIndex;
+      {/* Player Avatars (supports both Classic and Three Kingdoms) */}
+      <View style={styles.playerAvatarsContainer}>
+        {Array.from({ length: match.mode.playerCount }, (_, playerIndex) => {
+          const assignedFactionId = match.playerFactionMap[playerIndex];
+          const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
+          const isActive = match.currentPlayerIndex === playerIndex;
 
-            // Color circle or "?" if unassigned
-            let playerColor = '#9E9E9E'; // Gray default
-            let playerLabel = '?';
-            if (assignedFaction) {
-              if (assignedFaction.color === 'green') {
-                playerColor = '#2E7D32';
-                playerLabel = '綠';
-              } else if (assignedFaction.color === 'red') {
-                playerColor = '#C62828';
-                playerLabel = '紅';
-              } else if (assignedFaction.color === 'black') {
-                playerColor = '#212121';
-                playerLabel = '黑';
-              }
+          // Color circle or "?" if unassigned
+          let playerColor = '#9E9E9E'; // Gray default
+          let playerLabel = '?';
+          if (assignedFaction) {
+            if (assignedFaction.color === 'green') {
+              playerColor = '#2E7D32';
+              playerLabel = '綠';
+            } else if (assignedFaction.color === 'red') {
+              playerColor = '#C62828';
+              playerLabel = '紅';
+            } else if (assignedFaction.color === 'black') {
+              playerColor = '#212121';
+              playerLabel = '黑';
             }
+          }
 
-            return (
-              <View key={playerIndex} style={styles.playerAvatarWrapper}>
-                <View 
-                  style={[
-                    styles.playerAvatar, 
-                    { borderColor: playerColor },
-                    isActive && styles.playerAvatarActive,
-                  ]}
-                >
-                  <Text style={[styles.playerAvatarText, { color: playerColor }]}>
-                    {playerLabel}
-                  </Text>
-                </View>
-                <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+          return (
+            <View key={playerIndex} style={styles.playerAvatarWrapper}>
+              <View 
+                style={[
+                  styles.playerAvatar, 
+                  { borderColor: playerColor },
+                  isActive && styles.playerAvatarActive,
+                ]}
+              >
+                <Text style={[styles.playerAvatarText, { color: playerColor }]}>
+                  {playerLabel}
+                </Text>
               </View>
-            );
-          })}
-        </View>
-      )}
+              <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+            </View>
+          );
+        })}
+      </View>
 
       {/* Draw counter for Three Kingdoms mode */}
       {match.status === 'in-progress' && match.movesWithoutCapture !== null && (

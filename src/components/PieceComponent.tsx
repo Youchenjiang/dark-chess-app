@@ -65,8 +65,18 @@ export const PieceComponent: React.FC<PieceComponentProps> = ({ piece, faction }
   }
 
   // Face-up piece - show Chinese character with faction color
-  // Determine faction color (default to red for Classic mode compatibility)
-  const factionColor = faction?.color || 'red';
+  // Determine color based on mode:
+  // - Classic mode: faction is undefined, use piece.factionId ('red' or 'black')
+  // - Three Kingdoms: faction is provided, use faction.color ('red', 'black', or 'green')
+  let factionColor: 'red' | 'black' | 'green';
+  
+  if (faction) {
+    // Three Kingdoms mode: use faction.color
+    factionColor = faction.color;
+  } else {
+    // Classic mode: use piece.factionId directly ('red' or 'black')
+    factionColor = piece.factionId as 'red' | 'black';
+  }
   
   // Select label based on faction color (Red uses traditional red characters, Black/Green use black characters)
   const label = factionColor === 'red' ? PIECE_LABELS[piece.type] : PIECE_LABELS_BLACK[piece.type];

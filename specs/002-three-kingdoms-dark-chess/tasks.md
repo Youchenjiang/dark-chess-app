@@ -1,682 +1,313 @@
-# Implementation Tasks: Three Kingdoms Dark Chess (三國暗棋)
+# Implementation Tasks: Three Kingdoms Dark Chess - Phase 5 Corrections
 
 **Feature**: `002-three-kingdoms-dark-chess`  
 **Branch**: `002-three-kingdoms-dark-chess`  
-**Status**: Ready for Implementation  
+**Status**: Phase 5 - Critical Corrections & Refinement  
 **Generated**: 2026-01-22
 
 ---
 
-## Summary
+## Overview
 
-**Total Tasks**: 87 tasks across 7 phases  
-**Parallel Opportunities**: 34 parallelizable tasks marked with [P]  
-**Test Coverage Required**: 100% for core logic (ClassicRules, ThreeKingdomsRules)  
-**Estimated Effort**: 4-6 days (43 hours)
+This task list focuses on **Phase 5: Three Kingdoms Correction & Refinement**, implementing critical v2 specification corrections to the existing implementation. These corrections address user feedback on board orientation, initial setup, faction assignment, and movement mechanics.
 
-**Task Breakdown by Phase**:
-- Phase 1 (Setup): 2 tasks
-- Phase 2 (Foundational): 18 tasks  
-- Phase 3 (User Story 1): 14 tasks
-- Phase 4 (User Story 2): 22 tasks
-- Phase 5 (User Story 4): 13 tasks
-- Phase 6 (User Story 3): 8 tasks
-- Phase 7 (Polish): 10 tasks
+**Critical v2 Corrections**:
+1. **Portrait 5×9 Layout**: Reorient board from landscape to Portrait (5 columns × 9 rows)
+2. **Four Corners (四角) Setup**: Replace random scatter with strategic corner clusters
+3. **Dynamic Faction Assignment**: Implement First Flip Rule (players not pre-assigned)
+4. **Army Chess Movement**: Ministers/Horses move without blocking (no 象眼/馬腳)
+5. **UI Safety**: SafeAreaView, dynamic scaling, "Back/Exit" button
 
 ---
 
-## Phase 1: Setup
+## Task Summary
 
-**Goal**: Initialize project structure for multi-mode support
-
-**Blocking**: All subsequent phases depend on this
-
-### Tasks
-
-- [ ] T001 Review existing Classic Dark Chess implementation in src/core/
-- [ ] T002 Create src/core/rules/ directory for Strategy Pattern implementations
-
-**Duration**: 30 minutes  
-**Dependencies**: None  
-**Parallel**: N/A (setup tasks are sequential)
+| Phase | Task Count | Focus |
+|-------|------------|-------|
+| **Setup** | 3 | Project validation & backup |
+| **US1-Corrections** | 18 | Board layout, rendering, mode selector fixes |
+| **US2-Corrections** | 12 | Gameplay logic, dynamic faction assignment, Army Chess movement |
+| **US3-Corrections** | 2 | Rules guide updates |
+| **US4-Corrections** | 4 | Team color display |
+| **Polish** | 6 | Testing, validation, cleanup |
+| **TOTAL** | **45 tasks** | Complete v2 corrections |
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
+## Phase 0: Setup & Validation (3 tasks)
 
-**Goal**: Refactor core architecture to support pluggable rule systems
+**Goal**: Validate existing implementation and prepare for refactoring
 
-**Blocking**: User stories 1, 2, and 4 depend on this foundation
-
-**Independent Test**: Classic mode regression tests pass without modifications
-
-### Tasks
-
-#### Type Refactoring
-
-- [ ] T003 Add GameMode interface to src/core/types.ts
-- [ ] T004 Add Faction interface to src/core/types.ts
-- [ ] T005 [P] Replace Piece.color with Piece.factionId in src/core/types.ts
-- [ ] T006 [P] Add mode, factions, activeFactions, currentFactionIndex fields to Match in src/core/types.ts
-- [ ] T007 [P] Add capturedByFaction, movesWithoutCapture fields to Match in src/core/types.ts
-- [ ] T008 [P] Change Match.winner from 'red'|'black'|null to string|null in src/core/types.ts
-
-#### RuleSet Interface
-
-- [ ] T009 Create RuleSet interface in src/core/RuleSet.ts
-- [ ] T010 Add validateMove method signature to RuleSet interface
-- [ ] T011 Add validateCapture method signature to RuleSet interface
-- [ ] T012 Add checkWinCondition method signature to RuleSet interface
-- [ ] T013 Add checkDrawCondition method signature to RuleSet interface
-- [ ] T014 Add getLegalMoves method signature to RuleSet interface
-- [ ] T015 Add getAdjacentIndices method signature to RuleSet interface
-- [ ] T016 Add canPieceCapture method signature to RuleSet interface
-
-#### ClassicRules Extraction
-
-- [ ] T017 Create ClassicRules class implementing RuleSet in src/core/rules/ClassicRules.ts
-- [ ] T018 [P] Extract validateMove logic from GameEngine.ts to ClassicRules
-- [ ] T019 [P] Extract validateCapture logic from GameEngine.ts to ClassicRules
-- [ ] T020 [P] Extract checkWinCondition logic from GameEngine.ts to ClassicRules
-
-**Duration**: 6 hours  
-**Dependencies**: T001-T002  
-**Parallel Opportunities**: T005-T008 (type changes), T018-T020 (logic extraction)
-
-### Testing
-
-- [ ] T021 Write unit tests for ClassicRules.validateMove in tests/unit/core/rules/ClassicRules.test.ts (target: 100% coverage)
-- [ ] T022 Write unit tests for ClassicRules.validateCapture in tests/unit/core/rules/ClassicRules.test.ts (target: 100% coverage)
-- [ ] T023 Write unit tests for ClassicRules.checkWinCondition in tests/unit/core/rules/ClassicRules.test.ts (target: 100% coverage)
-- [ ] T024 Write unit tests for ClassicRules adjacency logic (8x4 grid) in tests/unit/core/rules/ClassicRules.test.ts
-- [ ] T025 Run existing 001 tests to verify no Classic mode regressions
-
-**Test Coverage Target**: 100% for ClassicRules
+- [ ] T001 Run all existing tests to establish baseline (expect 122 passing tests) in tests/
+- [ ] T002 Create backup branch `002-three-kingdoms-dark-chess-pre-v2` for rollback safety
+- [ ] T003 Document current implementation state in CHANGELOG.md (features working, known issues)
 
 ---
 
-## Phase 3: User Story 1 - Switch Between Classic and Three Kingdoms Modes (P1)
+## Phase 1: US1 Corrections - Board Layout & Rendering (18 tasks)
 
-**User Story**: As a player, I want to **select between Classic (2-player) and Three Kingdoms (3-player) modes** so that I can choose my preferred game variant.
+**User Story**: US1 - Switch Between Classic and Three Kingdoms Modes (Priority: P1)
 
-**Goal**: Enable mode selection UI and persist user choice
+**Goal**: Implement Portrait 5×9 board with Four Corners layout and fix UI rendering
 
-**Independent Test**: User can switch between modes and see correct board layout (32 cells vs 45 intersections)
+**Independent Test Criteria**:
+- [ ] Three Kingdoms board displays as Portrait 5×9 grid (5 columns × 9 rows)
+- [ ] Pieces arranged in Four Corners pattern (4 blocks of 2×4 at corners, 13 empty center)
+- [ ] Board fits within screen without scrolling (SafeAreaView + dynamic scaling)
+- [ ] Mode selector includes "Back/Exit" button
+- [ ] Switching modes preserves mode selection in AsyncStorage
 
-**Priority**: P1 (blocks User Story 2)
+### T004-T010: BoardGenerator Four Corners Logic
 
-### Tasks
+- [ ] T004 [US1] Update `BoardGenerator.createInitialMatch` signature to use Four Corners layout for Three Kingdoms in src/core/BoardGenerator.ts
+- [ ] T005 [P] [US1] Create helper function `createFourCornersLayout(pieces: Piece[]): Board` in src/core/BoardGenerator.ts
+- [ ] T006 [US1] Define corner region indices for Portrait 5×9 grid (Top-Left, Top-Right, Bottom-Left, Bottom-Right) in src/core/BoardGenerator.ts
+- [ ] T007 [US1] Define center empty indices (Col 2 all rows + Row 4 all cols = 13 positions) in src/core/BoardGenerator.ts
+- [ ] T008 [US1] Implement piece shuffling: shuffle 32 pieces, distribute 8 pieces to each of 4 corners in src/core/BoardGenerator.ts
+- [ ] T009 [US1] Update board initialization to use `createFourCornersLayout` for Three Kingdoms mode in src/core/BoardGenerator.ts
+- [ ] T010 [US1] Update BoardGenerator unit tests to verify Four Corners layout (4 corners occupied, 13 center empty) in tests/unit/core/BoardGenerator.test.ts
 
-#### ThreeKingdomsRules Core Logic
+### T011-T018: IntersectionBoardRenderer Portrait Refactoring
 
-- [ ] T026 [US1] Create ThreeKingdomsRules class implementing RuleSet in src/core/rules/ThreeKingdomsRules.ts
-- [ ] T027 [P] [US1] Implement getAdjacentIndices for 9x5 grid (45 intersections) in ThreeKingdomsRules
-- [ ] T028 [P] [US1] Implement canPieceCapture with no rank hierarchy in ThreeKingdomsRules
-- [ ] T029 [P] [US1] Implement validateMove for Three Kingdoms in ThreeKingdomsRules
-- [ ] T030 [P] [US1] Implement validateCapture for Three Kingdoms in ThreeKingdomsRules
-- [ ] T031 [US1] Implement checkWinCondition for elimination victory in ThreeKingdomsRules
-- [ ] T032 [US1] Implement checkDrawCondition for 60-move rule in ThreeKingdomsRules
+- [ ] T011 [US1] Update `GRID_COLS` and `GRID_ROWS` constants to Portrait orientation (5 cols × 9 rows) in src/components/IntersectionBoardRenderer.tsx
+- [ ] T012 [US1] Recalculate `INTERSECTION_SPACING` based on available screen HEIGHT (primary constraint for Portrait) in src/components/IntersectionBoardRenderer.tsx
+- [ ] T013 [US1] Update grid line rendering for Portrait (5 vertical lines, 9 horizontal lines) in src/components/IntersectionBoardRenderer.tsx
+- [ ] T014 [US1] Update piece positioning to use correct Portrait row/col calculations (index = row * 5 + col) in src/components/IntersectionBoardRenderer.tsx
+- [ ] T015 [US1] Add SafeAreaView wrapper to handle device notches and safe areas in src/components/IntersectionBoardRenderer.tsx
+- [ ] T016 [US1] Implement dynamic scaling fallback if board height exceeds available space in src/components/IntersectionBoardRenderer.tsx
+- [ ] T017 [US1] Update empty intersection dot rendering for 13 center positions in src/components/IntersectionBoardRenderer.tsx
+- [ ] T018 [US1] Test Portrait rendering on multiple device sizes (iPhone 13, Galaxy S21, verify no overflow) in tests/integration/components/IntersectionBoardView.test.tsx
 
-#### GameModes Registry
+### T019-T021: Mode Selector UI Improvements
 
-- [ ] T033 [US1] Create GAME_MODES registry in src/core/GameModes.ts
-- [ ] T034 [US1] Define GAME_MODES.classic with ClassicRules instance in GameModes.ts
-- [ ] T035 [US1] Define GAME_MODES.threeKingdoms with ThreeKingdomsRules instance in GameModes.ts
-
-#### BoardGenerator Multi-Mode
-
-- [ ] T036 [US1] Refactor createInitialMatch to accept GameMode parameter in src/core/BoardGenerator.ts
-- [ ] T037 [P] [US1] Implement Classic mode initialization (32 pieces, 32-element board) in BoardGenerator
-- [ ] T038 [P] [US1] Implement Three Kingdoms initialization (32 pieces, 45-element board, 13 nulls) in BoardGenerator
-- [ ] T039 [US1] Implement 12+10+10 piece distribution for Three Kingdoms in BoardGenerator
-
-**Duration**: 8 hours  
-**Dependencies**: T003-T020 (Foundational phase)  
-**Parallel Opportunities**: T027-T030 (ThreeKingdomsRules methods), T037-T038 (BoardGenerator modes)
-
-### Testing
-
-- [ ] T040 [P] [US1] Write unit tests for ThreeKingdomsRules.validateMove (100% coverage)
-- [ ] T041 [P] [US1] Write unit tests for ThreeKingdomsRules.validateCapture (100% coverage)
-- [ ] T042 [P] [US1] Write unit tests for ThreeKingdomsRules.checkWinCondition (100% coverage)
-- [ ] T043 [P] [US1] Write unit tests for ThreeKingdomsRules.checkDrawCondition (100% coverage)
-- [ ] T044 [P] [US1] Write unit tests for ThreeKingdomsRules adjacency (9x5 grid)
-- [ ] T045 [P] [US1] Write unit tests for BoardGenerator with Classic mode
-- [ ] T046 [P] [US1] Write unit tests for BoardGenerator with Three Kingdoms mode (45 positions, 13 nulls)
-- [ ] T047 [US1] Verify Classic mode still works after BoardGenerator refactoring
-
-**Test Coverage Target**: 100% for ThreeKingdomsRules, 100% for BoardGenerator multi-mode logic
+- [ ] T019 [P] [US1] Add "Back/Exit" button to return to mode selection screen in src/components/ModeSelector.tsx
+- [ ] T020 [P] [US1] Update App.tsx to handle "Back/Exit" navigation (reset match, show mode selector) in App.tsx
+- [ ] T021 [US1] Test mode switching with AsyncStorage persistence (Classic → Three Kingdoms → restart app → verify Three Kingdoms selected) in tests/integration/components/ModeSelector.test.tsx
 
 ---
 
-## Phase 4: User Story 2 - Play 3-Player Local Multiplayer (P1)
+## Phase 2: US2 Corrections - Gameplay Logic (12 tasks)
 
-**User Story**: As a player, I want to **play Three Kingdoms Dark Chess with 2 other players locally** (pass-and-play), taking turns flipping, moving, and capturing pieces.
+**User Story**: US2 - Play 3-Player Local Multiplayer (Priority: P1)
 
-**Goal**: Implement complete 3-player gameplay with turn rotation, elimination, and draw counter
+**Goal**: Implement dynamic faction assignment, Army Chess movement, and turn rotation logic
 
-**Independent Test**: Three players can complete a full game from setup to victory or draw
+**Independent Test Criteria**:
+- [ ] Player 1 flips piece → assigned to that faction (not pre-assigned)
+- [ ] Player 2 flips different faction → assigned; flips same faction → retry (not assigned)
+- [ ] Ministers/Horses move without blocking checks (no 象眼/馬腳)
+- [ ] Generals/Rooks/Cannons move with rail blocking (stopped by obstacles)
+- [ ] Eliminated faction removed from turn rotation (A → C → A if B eliminated)
+- [ ] Draw counter decrements on non-capture moves, resets to 60 on capture
 
-**Priority**: P1 (core gameplay loop)
+### T022-T027: Dynamic Faction Assignment Logic
 
-### Tasks
+- [ ] T022 [US2] Add `playerFactionMap: Record<string, string>` to gameStore state to track player-to-faction assignments in src/store/gameStore.ts
+- [ ] T023 [US2] Update `flipPiece` action to implement First Flip Rule logic in src/store/gameStore.ts:
+  - If player not assigned and flipped faction not taken → assign player to faction
+  - If player not assigned and flipped faction taken → turn passes, player not assigned (retry)
+  - If player already assigned → continue normal flip logic
+- [ ] T024 [P] [US2] Update turn indicator UI to show "Player 1's Turn" (before assignment) vs "Red's Turn" (after assignment) in src/components/GameInfo.tsx
+- [ ] T025 [P] [US2] Add helper function `getCurrentPlayerFaction(match, playerFactionMap): string | null` in src/store/gameStore.ts
+- [ ] T026 [US2] Write unit tests for dynamic faction assignment (all 3 players assigned to distinct factions) in tests/unit/store/gameStore.test.ts
+- [ ] T027 [US2] Write E2E test for First Flip Rule (P1 flips Green, P2 flips Green → retry, P2 flips Red → assigned) in tests/integration/e2e/ThreeKingdomsGameFlow.test.tsx
 
-#### State Management
+### T028-T033: Army Chess Movement Logic
 
-- [ ] T048 [US2] Add currentMode field to GameStore in src/store/gameStore.ts
-- [ ] T049 [US2] Implement setMode action in GameStore
-- [ ] T050 [US2] Implement loadPersistedMode action with AsyncStorage in GameStore
-- [ ] T051 [US2] Update newMatch action to use currentMode in GameStore
-- [ ] T052 [US2] Update flipPiece action to use match.mode.ruleSet in GameStore
-- [ ] T053 [US2] Update movePiece action to handle draw counter (Three Kingdoms) in GameStore
-- [ ] T054 [US2] Update capturePiece action to reset draw counter (Three Kingdoms) in GameStore
-
-#### GameEngine Delegation
-
-- [ ] T055 [US2] Update GameEngine.executeFlip to work with multi-mode Match structure
-- [ ] T056 [US2] Update GameEngine.executeMove to decrement draw counter (if not null)
-- [ ] T057 [US2] Update GameEngine.executeCapture to reset draw counter to 60 (if not null)
-- [ ] T058 [US2] Update GameEngine turn rotation logic to use activeFactions array
-
-#### Board Renderers
-
-- [ ] T059 [P] [US2] Create ClassicBoardRenderer component in src/components/ClassicBoardRenderer.tsx
-- [ ] T060 [P] [US2] Implement 8x4 cell-based rendering in ClassicBoardRenderer
-- [ ] T061 [P] [US2] Create IntersectionBoardRenderer component in src/components/IntersectionBoardRenderer.tsx
-- [ ] T062 [P] [US2] Implement 9x5 intersection-based rendering with grid lines in IntersectionBoardRenderer
-- [ ] T063 [US2] Update BoardView to conditionally render ClassicBoardRenderer or IntersectionBoardRenderer based on mode
-
-#### Mode Selector UI
-
-- [ ] T064 [US2] Create ModeSelector component in src/components/ModeSelector.tsx
-- [ ] T065 [US2] Display "經典暗棋 (Classic)" and "三國暗棋 (Three Kingdoms)" buttons in ModeSelector
-- [ ] T066 [US2] Highlight currently selected mode in ModeSelector
-- [ ] T067 [US2] Call setMode and newMatch when user selects a mode in ModeSelector
-
-**Duration**: 10 hours  
-**Dependencies**: T026-T047 (User Story 1)  
-**Parallel Opportunities**: T059-T062 (board renderers can be developed in parallel)
-
-### Testing
-
-- [ ] T068 [P] [US2] Write unit tests for GameStore.setMode action
-- [ ] T069 [P] [US2] Write unit tests for GameStore.loadPersistedMode with AsyncStorage
-- [ ] T070 [P] [US2] Write unit tests for GameStore.newMatch with both modes
-- [ ] T071 [P] [US2] Write unit tests for draw counter decrement in movePiece action
-- [ ] T072 [P] [US2] Write unit tests for draw counter reset in capturePiece action
-- [ ] T073 [P] [US2] Write integration test for ModeSelector UI
-- [ ] T074 [P] [US2] Write integration test for ClassicBoardRenderer (8x4 cells)
-- [ ] T075 [P] [US2] Write integration test for IntersectionBoardRenderer (9x5 intersections)
-- [ ] T076 [US2] Write E2E test for complete 3-player Three Kingdoms match (flip, move, capture, elimination)
-- [ ] T077 [US2] Write E2E test for draw condition (60 moves without capture)
-- [ ] T078 [US2] Write E2E test for elimination and turn skipping (Player B eliminated, turn A → C → A)
-
-**Test Coverage Target**: 100% for GameStore multi-mode logic, E2E coverage for 3-player gameplay
+- [ ] T028 [US2] Update `ThreeKingdomsRules.validateMove` to remove blocking checks for Ministers (相/象) in src/core/rules/ThreeKingdomsRules.ts
+- [ ] T029 [US2] Update `ThreeKingdomsRules.validateMove` to remove blocking checks for Horses (馬/傌) in src/core/rules/ThreeKingdomsRules.ts
+- [ ] T030 [US2] Ensure `ThreeKingdomsRules.validateMove` keeps blocking checks for Generals (帥/將) - rail movement blocked by obstacles in src/core/rules/ThreeKingdomsRules.ts
+- [ ] T031 [US2] Ensure `ThreeKingdomsRules.validateMove` keeps blocking checks for Rooks (俥/車) and Cannons (炮/包) in src/core/rules/ThreeKingdomsRules.ts
+- [ ] T032 [US2] Update `ThreeKingdomsRules.getLegalMoves` to reflect unblocked movement for Ministers/Horses in src/core/rules/ThreeKingdomsRules.ts
+- [ ] T033 [US2] Write unit tests for Army Chess movement (Ministers/Horses jump over pieces, Generals/Rooks blocked) in tests/unit/core/rules/ThreeKingdomsRules.test.ts
 
 ---
 
-## Phase 5: User Story 4 - Visualize 3 Teams Clearly (P2)
+## Phase 3: US3 Corrections - Rules Guide Updates (2 tasks)
 
-**User Story**: As a player, I want to **distinguish between the 3 teams visually** so that I can quickly identify which pieces belong to which faction.
+**User Story**: US3 - Understand Three Kingdoms Rules (Priority: P2)
 
-**Goal**: Implement GREEN/RED/BLACK team color system and draw counter display
+**Goal**: Update rules guide to reflect v2 corrections (Portrait, Four Corners, Army Chess movement)
 
-**Independent Test**: All revealed pieces display team colors correctly (GREEN/RED/BLACK)
+**Independent Test Criteria**:
+- [ ] Rules guide displays Portrait 5×9 board topology
+- [ ] Rules guide explains Four Corners initial setup
+- [ ] Rules guide clarifies Ministers/Horses move without blocking
 
-**Priority**: P2 (enhances User Story 2)
+### Rules Guide Content Updates
 
-**Note**: This phase is scheduled after US2 because it enhances the visual clarity of the 3-player gameplay implemented in US2.
-
-### Tasks
-
-#### Piece Visualization
-
-- [ ] T079 [P] [US4] Update PieceComponent to accept factionColor prop in src/components/PieceComponent.tsx
-- [ ] T080 [P] [US4] Render piece with GREEN color for Team 1 (Generals' Army) in PieceComponent
-- [ ] T081 [P] [US4] Render piece with RED color for Team 2 (Red Advisors) in PieceComponent
-- [ ] T082 [P] [US4] Render piece with BLACK color for Team 3 (Black Advisors) in PieceComponent
-
-#### Game Info Panel
-
-- [ ] T083 [US4] Update GameInfo to display 3-player turn indicator in src/components/GameInfo.tsx
-- [ ] T084 [P] [US4] Display current turn with team color highlighting (GREEN/RED/BLACK) in GameInfo
-- [ ] T085 [P] [US4] Display "Moves Until Draw" counter for Three Kingdoms mode in GameInfo
-- [ ] T086 [P] [US4] Display captured pieces per faction (3 separate counts) in GameInfo
-- [ ] T087 [US4] Show eliminated teams as grayed out in GameInfo
-
-#### Empty Intersection Display
-
-- [ ] T088 [US4] Render empty intersection points as small dots in IntersectionBoardRenderer
-- [ ] T089 [US4] Visually distinguish occupied vs empty intersections (13 empty spots)
-
-**Duration**: 4 hours  
-**Dependencies**: T048-T078 (User Story 2)  
-**Parallel Opportunities**: T079-T082 (piece colors), T084-T086 (GameInfo updates)
-
-### Testing
-
-- [ ] T090 [P] [US4] Write integration test for PieceComponent with GREEN faction color
-- [ ] T091 [P] [US4] Write integration test for PieceComponent with RED faction color
-- [ ] T092 [P] [US4] Write integration test for PieceComponent with BLACK faction color
-- [ ] T093 [P] [US4] Write integration test for GameInfo 3-player turn indicator
-- [ ] T094 [P] [US4] Write integration test for GameInfo draw counter display
-- [ ] T095 [US4] Write snapshot test for all 3 team colors on board
-
-**Test Coverage Target**: Visual regression tests for 3 team colors
+- [ ] T034 [P] [US3] Update rules guide to describe Portrait 5×9 board (5 cols × 9 rows, 45 intersections) in src/components/RulesGuide.tsx
+- [ ] T035 [P] [US3] Update rules guide to explain Four Corners setup (4 blocks of 2×4 pieces, 13 empty center) and Army Chess movement (Ministers/Horses no blocking) in src/components/RulesGuide.tsx
 
 ---
 
-## Phase 6: User Story 3 - Understand Three Kingdoms Rules (P2)
+## Phase 4: US4 Corrections - Team Color Display (4 tasks)
 
-**User Story**: As a new player, I want to **access a rules guide for Three Kingdoms** mode so that I understand the differences from Classic.
+**User Story**: US4 - Visualize 3 Teams Clearly (Priority: P2)
 
-**Goal**: Create in-app rules guide with Traditional Chinese text
+**Goal**: Ensure GREEN/RED/BLACK colors display correctly for 3 teams
 
-**Independent Test**: Rules screen displays all team compositions, movement rules, capture rules, and draw rule
+**Independent Test Criteria**:
+- [ ] Team 1 (Generals' Army) pieces display with GREEN font/border
+- [ ] Team 2 (Red Advisors) pieces display with RED font/border
+- [ ] Team 3 (Black Advisors) pieces display with BLACK font/border
+- [ ] Turn indicator shows correct team color
 
-**Priority**: P2 (educational content)
+### Team Color Rendering
 
-### Tasks
-
-#### Rules Screen
-
-- [ ] T096 [US3] Create RulesScreen component in src/components/RulesScreen.tsx
-- [ ] T097 [US3] Display team distribution section (12+10+10 pieces) in RulesScreen
-- [ ] T098 [P] [US3] Display movement rules section (Generals, Ministers, Horses) in RulesScreen
-- [ ] T099 [P] [US3] Display capture rules section (no rank hierarchy) in RulesScreen
-- [ ] T100 [P] [US3] Display win conditions section (elimination, draw, stalemate) in RulesScreen
-- [ ] T101 [US3] Add "Three Kingdoms Rules" button to ModeSelector
-- [ ] T102 [US3] Navigate to RulesScreen when user taps "Three Kingdoms Rules" button
-
-**Duration**: 3 hours  
-**Dependencies**: T048-T078 (User Story 2)  
-**Parallel Opportunities**: T098-T100 (rules sections can be written in parallel)
-
-### Testing
-
-- [ ] T103 [P] [US3] Write integration test for RulesScreen rendering
-- [ ] T104 [US3] Write snapshot test for RulesScreen Traditional Chinese text
-
-**Test Coverage Target**: Basic rendering and navigation tests
+- [ ] T036 [P] [US4] Verify `PieceComponent.tsx` correctly maps `faction.color` to GREEN/RED/BLACK styles in src/components/PieceComponent.tsx
+- [ ] T037 [P] [US4] Verify `GameInfo.tsx` displays turn indicator with correct team color (GREEN for Team 1) in src/components/GameInfo.tsx
+- [ ] T038 [P] [US4] Update faction color constants in `GameModes.ts` to ensure Team 1 uses 'green' in src/core/GameModes.ts
+- [ ] T039 [US4] Write integration test for team color display (verify GREEN/RED/BLACK pieces render correctly) in tests/integration/components/PieceComponent.test.tsx
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 5: Polish & Validation (6 tasks)
 
-**Goal**: Final optimization, performance testing, and documentation
+**Goal**: Comprehensive testing, validation, and cleanup
 
-**Independent Test**: All performance targets met (< 2s init, 60 FPS, < 10ms validation)
+### Final Testing & Validation
 
-### Tasks
-
-#### Performance Optimization
-
-- [ ] T105 Measure match initialization time for Three Kingdoms mode (target: < 2 seconds)
-- [ ] T106 Measure move validation time (target: < 10ms)
-- [ ] T107 Measure board rendering time (target: 60 FPS)
-- [ ] T108 Optimize getLegalMoves if performance targets not met
-- [ ] T109 Add React.memo to PieceComponent and GridCell if needed
-
-#### Final Testing & QA
-
-- [ ] T110 Run full test suite (unit + integration + E2E) for both modes
-- [ ] T111 Verify Classic mode has no regressions (compare with 001 baseline)
-- [ ] T112 Manual QA testing on iOS device (mode switch, 3-player game, draw counter)
-- [ ] T113 Manual QA testing on Android device (mode switch, 3-player game, draw counter)
-- [ ] T114 Fix any linter errors or warnings
-
-**Duration**: 4 hours  
-**Dependencies**: All previous phases  
-**Parallel Opportunities**: T112-T113 (iOS/Android testing in parallel)
+- [ ] T040 [P] Run full unit test suite (expect 122+ tests passing, including v2 corrections) in tests/
+- [ ] T041 [P] Run integration tests for Three Kingdoms mode (Four Corners layout, dynamic assignment, Army Chess movement) in tests/integration/
+- [ ] T042 Run E2E test for complete 3-player Three Kingdoms match (Four Corners → dynamic assignment → gameplay → elimination/draw) in tests/integration/e2e/ThreeKingdomsGameFlow.test.tsx
+- [ ] T043 Test Portrait rendering on multiple devices (iPhone SE, iPhone 13, Galaxy S21, verify SafeAreaView and dynamic scaling) using React Native Debugger
+- [ ] T044 Update CHANGELOG.md with v2 corrections summary (Portrait layout, Four Corners, dynamic assignment, Army Chess movement)
+- [ ] T045 Commit all v2 corrections with message: "feat(three-kingdoms): implement v2 critical corrections"
 
 ---
 
-## Dependencies Graph
+## Dependency Graph
 
 ```text
-Phase 1 (Setup)
-   └─> Phase 2 (Foundational - ClassicRules extraction)
-          └─> Phase 3 (US1 - ThreeKingdomsRules, Mode Selection)
-                 └─> Phase 4 (US2 - 3-Player Gameplay)
-                        ├─> Phase 5 (US4 - Visual Clarity)
-                        └─> Phase 6 (US3 - Rules Guide)
-                               └─> Phase 7 (Polish)
+Phase 0 (Setup) → Phase 1 (US1) → Phase 2 (US2) → Phase 3 (US3) → Phase 4 (US4) → Phase 5 (Polish)
+     ↓                 ↓                ↓
+   T001-T003      T004-T021        T022-T033
+  (validate)   (board & UI fixes) (logic fixes)
+                                       ↓
+                               T034-T035, T036-T039
+                              (rules guide, colors)
+                                       ↓
+                                   T040-T045
+                                  (final validation)
 ```
 
-**Critical Path**: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 7
+**Blocking Dependencies**:
+- **T004-T010** (BoardGenerator) MUST complete before T022-T027 (dynamic assignment depends on correct board layout)
+- **T011-T018** (IntersectionBoardRenderer) MUST complete before T043 (device testing)
+- **T022-T027** (dynamic assignment) MUST complete before T042 (E2E test)
+- **T028-T033** (Army Chess movement) MUST complete before T042 (E2E test)
 
-**Parallel Opportunities**:
-- Phase 5 (US4) can run in parallel with Phase 6 (US3) after Phase 4 completes
-- Within each phase, tasks marked with [P] can be parallelized
-
----
-
-## Parallel Execution Examples
-
-### Phase 2 (Foundational)
-
-**Parallel Stream 1**: Type refactoring (T005-T008)  
-**Parallel Stream 2**: ClassicRules logic extraction (T018-T020)  
-**Parallel Stream 3**: ClassicRules unit tests (T021-T024)
-
-```bash
-# Developer A: Type refactoring
-git checkout -b feat/002-types
-# Work on T005-T008
-
-# Developer B: ClassicRules extraction
-git checkout -b feat/002-classic-rules
-# Work on T018-T020
-
-# Developer C: ClassicRules tests
-git checkout -b feat/002-classic-rules-tests
-# Work on T021-T024
-```
-
----
-
-### Phase 3 (US1)
-
-**Parallel Stream 1**: ThreeKingdomsRules methods (T027-T030)  
-**Parallel Stream 2**: BoardGenerator modes (T037-T038)  
-**Parallel Stream 3**: Unit tests (T040-T046)
-
-```bash
-# Developer A: ThreeKingdomsRules implementation
-git checkout -b feat/002-us1-tk-rules
-# Work on T027-T030
-
-# Developer B: BoardGenerator multi-mode
-git checkout -b feat/002-us1-board-gen
-# Work on T037-T038
-
-# Developer C: Unit tests
-git checkout -b feat/002-us1-tests
-# Work on T040-T046
-```
-
----
-
-### Phase 4 (US2)
-
-**Parallel Stream 1**: Board renderers (T059-T062)  
-**Parallel Stream 2**: Mode selector UI (T064-T067)  
-**Parallel Stream 3**: Integration tests (T073-T075)
-
-```bash
-# Developer A: ClassicBoardRenderer
-git checkout -b feat/002-us2-classic-renderer
-# Work on T059-T060
-
-# Developer B: IntersectionBoardRenderer
-git checkout -b feat/002-us2-intersection-renderer
-# Work on T061-T062
-
-# Developer C: ModeSelector
-git checkout -b feat/002-us2-mode-selector
-# Work on T064-T067
-```
+**Parallel Execution Opportunities**:
+- **T005-T007** (Four Corners indices) can run in parallel with T011-T013 (Portrait grid constants)
+- **T019-T021** (Mode Selector UI) can run in parallel with T004-T018 (BoardGenerator & renderer)
+- **T034-T035** (Rules Guide) can run in parallel with T036-T039 (Team Colors)
+- **T040-T041** (Unit & Integration tests) can run in parallel
 
 ---
 
 ## Implementation Strategy
 
-### MVP (Minimum Viable Product)
+### Phase Execution Order
 
-**Scope**: Phase 1 + Phase 2 + Phase 3 (User Story 1)
+1. **Setup (T001-T003)**: Validate baseline, create backup
+2. **US1 - Board Layout (T004-T021)**: Fix Portrait rendering and Four Corners layout
+3. **US2 - Gameplay Logic (T022-T033)**: Implement dynamic assignment and Army Chess movement
+4. **US3/US4 - Content Updates (T034-T039)**: Update rules guide and verify team colors
+5. **Polish (T040-T045)**: Final testing and validation
 
-**Rationale**: Mode selection is the entry point for all Three Kingdoms features. Without it, users cannot access the new variant.
+### Critical Success Factors
 
-**Duration**: ~2 days (14 hours)
+1. **Four Corners Layout**: Correct index mapping for Portrait 5×9 grid (4 blocks of 2×4 pieces, 13 empty center)
+2. **Dynamic Faction Assignment**: First Flip Rule logic (players assigned based on flipped piece, retry if faction taken)
+3. **Army Chess Movement**: Ministers/Horses move without blocking, Generals/Rooks/Cannons blocked by obstacles
+4. **Portrait Rendering**: SafeAreaView + dynamic scaling ensures board fits screen without scrolling
+5. **Regression-Free**: All existing Classic mode tests still pass after refactoring
 
-**Deliverable**: Users can switch between Classic and Three Kingdoms modes, see correct board layouts, but full 3-player gameplay is not yet implemented.
+### Testing Approach
 
----
-
-### Incremental Delivery Plan
-
-**Iteration 1** (MVP): Phase 1-3 (Mode Selection)  
-**Iteration 2**: Phase 4 (3-Player Gameplay)  
-**Iteration 3**: Phase 5 (Visual Clarity) + Phase 6 (Rules Guide)  
-**Iteration 4**: Phase 7 (Polish)
-
-Each iteration produces a testable, demoable increment.
-
----
-
-## Testing Summary
-
-### Unit Tests (Required - 100% Coverage)
-
-**Core Logic**:
-- `tests/unit/core/rules/ClassicRules.test.ts` - 100% coverage (T021-T025)
-- `tests/unit/core/rules/ThreeKingdomsRules.test.ts` - 100% coverage (T040-T044)
-- `tests/unit/core/BoardGenerator.test.ts` - Both modes (T045-T047)
-
-**State Management**:
-- `tests/unit/store/gameStore.test.ts` - Mode selection, persistence (T068-T072)
-
-### Integration Tests
-
-**UI Components**:
-- `tests/integration/components/ModeSelector.test.tsx` (T073)
-- `tests/integration/components/ClassicBoardRenderer.test.tsx` (T074)
-- `tests/integration/components/IntersectionBoardRenderer.test.tsx` (T075)
-- `tests/integration/components/PieceComponent.test.tsx` (T090-T092)
-- `tests/integration/components/GameInfo.test.tsx` (T093-T094)
-- `tests/integration/components/RulesScreen.test.tsx` (T103)
-
-### E2E Tests
-
-**Complete Game Flows**:
-- `tests/e2e/ClassicGameFlow.test.tsx` - No regressions (T111)
-- `tests/e2e/ThreeKingdomsGameFlow.test.tsx` - Full 3-player game (T076-T078)
-
-### Performance Tests
-
-- Match initialization < 2 seconds (T105)
-- Move validation < 10ms (T106)
-- Board rendering 60 FPS (T107)
+- **Unit Tests**: Verify Four Corners indices, dynamic assignment logic, Army Chess movement rules
+- **Integration Tests**: Test Portrait rendering, mode switching, team colors
+- **E2E Tests**: Complete 3-player game from Four Corners setup → dynamic assignment → gameplay → victory/draw
+- **Device Tests**: Portrait rendering on iPhone SE, iPhone 13, Galaxy S21 (verify no overflow)
 
 ---
 
-## Commit Strategy
+## Key File Changes
 
-Follow Conventional Commits format. Suggested commits per phase:
+### Core Logic Files (High Priority)
 
-### Phase 2 (Foundational)
+| File | Changes | Tasks |
+|------|---------|-------|
+| `src/core/BoardGenerator.ts` | Implement Four Corners layout (4 blocks, 13 empty center) | T004-T010 |
+| `src/core/rules/ThreeKingdomsRules.ts` | Remove blocking for Ministers/Horses, keep for Generals/Rooks/Cannons | T028-T033 |
+| `src/store/gameStore.ts` | Add `playerFactionMap`, implement First Flip Rule in `flipPiece` | T022-T027 |
 
-```bash
-git commit -m "refactor(core): extend types for multi-mode support
+### UI Files (High Priority)
 
-- Add GameMode and Faction types (T003-T004)
-- Replace Piece.color with Piece.factionId (T005)
-- Extend Match with mode, factions, activeFactions (T006-T007)
-- Change Match.winner to string (T008)
+| File | Changes | Tasks |
+|------|---------|-------|
+| `src/components/IntersectionBoardRenderer.tsx` | Reorient to Portrait 5×9 (5 cols × 9 rows), SafeAreaView, dynamic scaling | T011-T018 |
+| `src/components/ModeSelector.tsx` | Add "Back/Exit" button | T019-T020 |
+| `src/components/GameInfo.tsx` | Display "Player X's Turn" (before assignment) vs "Faction's Turn" (after) | T024 |
 
-BREAKING CHANGE: Match structure modified for multi-player support"
+### Test Files (Required)
 
-git commit -m "refactor(core): define RuleSet interface
-
-- Create RuleSet interface with 7 methods (T009-T016)
-- Prepare for Strategy Pattern implementation"
-
-git commit -m "refactor(core): extract Classic logic into ClassicRules
-
-- Create ClassicRules class implementing RuleSet (T017)
-- Extract validateMove, validateCapture, checkWinCondition (T018-T020)
-- Maintain 100% unit test coverage (T021-T025)
-
-No functional changes to Classic mode behavior"
-```
-
-### Phase 3 (User Story 1)
-
-```bash
-git commit -m "feat(core): implement Three Kingdoms rule system
-
-- Create ThreeKingdomsRules class (T026)
-- Implement 9x5 grid adjacency (T027)
-- Implement no rank hierarchy (T028)
-- Implement draw counter logic (T032)
-- 100% unit test coverage (T040-T044)"
-
-git commit -m "feat(core): create GameModes registry
-
-- Define GAME_MODES.classic and GAME_MODES.threeKingdoms (T033-T035)
-- Centralized mode configuration"
-
-git commit -m "refactor(core): update BoardGenerator for multi-mode
-
-- Accept GameMode parameter in createInitialMatch (T036)
-- Support Classic (32 cells) and Three Kingdoms (45 intersections) (T037-T038)
-- Implement 12+10+10 piece distribution (T039)
-- Unit tests for both modes (T045-T047)"
-```
-
-### Phase 4 (User Story 2)
-
-```bash
-git commit -m "feat(store): add mode selection to GameStore
-
-- Add currentMode, setMode, loadPersistedMode (T048-T050)
-- Update newMatch to use currentMode (T051)
-- Persist mode to AsyncStorage (T050)
-- Unit tests for mode management (T068-T070)"
-
-git commit -m "refactor(store): update game actions for multi-mode
-
-- Update flipPiece to use match.mode.ruleSet (T052)
-- Handle draw counter in movePiece and capturePiece (T053-T054)
-- Unit tests for draw counter (T071-T072)"
-
-git commit -m "feat(ui): create board renderers for both modes
-
-- Create ClassicBoardRenderer (8x4 cells) (T059-T060)
-- Create IntersectionBoardRenderer (9x5 intersections) (T061-T062)
-- Update BoardView to conditionally render (T063)
-- Integration tests (T074-T075)"
-
-git commit -m "feat(ui): add mode selector component
-
-- Create ModeSelector UI (T064-T067)
-- Display Classic and Three Kingdoms options
-- Integration test (T073)"
-
-git commit -m "test(e2e): add Three Kingdoms gameplay tests
-
-- E2E test for full 3-player match (T076)
-- E2E test for draw condition (T077)
-- E2E test for elimination and turn skipping (T078)"
-```
-
-### Phase 5 (User Story 4)
-
-```bash
-git commit -m "feat(ui): add 3-team color visualization
-
-- Update PieceComponent for GREEN/RED/BLACK colors (T079-T082)
-- Update GameInfo for 3-player indicators (T083-T084)
-- Display draw counter (T085)
-- Display captured pieces per faction (T086)
-- Integration tests for team colors (T090-T095)"
-
-git commit -m "feat(ui): visualize empty intersections
-
-- Render empty spots as dots (T088-T089)
-- Distinguish occupied vs empty (13 spots)"
-```
-
-### Phase 6 (User Story 3)
-
-```bash
-git commit -m "feat(ui): add Three Kingdoms rules guide
-
-- Create RulesScreen component (T096)
-- Display team distribution, movement rules, capture rules (T097-T100)
-- Add navigation from ModeSelector (T101-T102)
-- Integration tests (T103-T104)"
-```
-
-### Phase 7 (Polish)
-
-```bash
-git commit -m "perf(core): optimize Three Kingdoms performance
-
-- Measure and optimize match initialization (T105)
-- Optimize move validation (T106)
-- Optimize board rendering (T107-T109)
-- All targets met: < 2s init, 60 FPS, < 10ms validation"
-
-git commit -m "test(qa): comprehensive QA and regression testing
-
-- Full test suite passing (T110)
-- No Classic mode regressions (T111)
-- Manual QA on iOS and Android (T112-T113)
-- Fix linter errors (T114)"
-```
+| File | Changes | Tasks |
+|------|---------|-------|
+| `tests/unit/core/BoardGenerator.test.ts` | Verify Four Corners layout (4 corners, 13 center empty) | T010 |
+| `tests/unit/core/rules/ThreeKingdomsRules.test.ts` | Verify Army Chess movement (Ministers/Horses no blocking) | T033 |
+| `tests/unit/store/gameStore.test.ts` | Verify dynamic faction assignment (First Flip Rule) | T026 |
+| `tests/integration/e2e/ThreeKingdomsGameFlow.test.tsx` | E2E test for complete 3-player game (Four Corners → dynamic assignment → victory/draw) | T027, T042 |
 
 ---
 
-## Validation Checklist
+## Expected Outcomes
 
-Before marking feature complete:
+### After Phase 1 (US1 - Board Layout)
+- ✅ Three Kingdoms board displays as Portrait 5×9 grid with Four Corners layout
+- ✅ Board fits within screen without scrolling (SafeAreaView + dynamic scaling)
+- ✅ Mode selector includes "Back/Exit" button
 
-- [ ] All 87 tasks completed
-- [ ] All unit tests pass (100% coverage for core logic)
-- [ ] All integration tests pass
-- [ ] All E2E tests pass
-- [ ] Classic mode behavior unchanged (no regressions)
-- [ ] Three Kingdoms mode fully functional:
-  - [ ] 45-position board (32 pieces + 13 nulls)
-  - [ ] 3-player turn rotation
-  - [ ] Elimination and turn skipping
-  - [ ] Draw counter (60 moves)
-  - [ ] No rank hierarchy
-  - [ ] Modified movement rules
-- [ ] UI complete:
-  - [ ] Mode selector
-  - [ ] 3-player turn indicator
-  - [ ] Draw counter display
-  - [ ] GREEN/RED/BLACK team colors
-  - [ ] Empty intersections
-  - [ ] Rules guide
-- [ ] Mode selection persists across app restarts
-- [ ] Performance targets met (< 2s init, 60 FPS, < 10ms validation)
-- [ ] No linter errors
-- [ ] All commits follow Conventional Commits format
+### After Phase 2 (US2 - Gameplay Logic)
+- ✅ Dynamic faction assignment works (First Flip Rule: players assigned based on flipped piece, retry if faction taken)
+- ✅ Army Chess movement enforced (Ministers/Horses jump over pieces, Generals/Rooks/Cannons blocked by obstacles)
+- ✅ Turn rotation skips eliminated factions
+- ✅ Draw counter decrements and resets correctly
+
+### After Phase 3/4 (US3/US4 - Content & Colors)
+- ✅ Rules guide explains Portrait, Four Corners, Army Chess movement
+- ✅ Team 1 (GREEN), Team 2 (RED), Team 3 (BLACK) colors display correctly
+
+### After Phase 5 (Polish)
+- ✅ All 122+ tests passing (100% unit test coverage)
+- ✅ E2E test confirms complete 3-player game works (Four Corners → dynamic assignment → victory/draw)
+- ✅ Portrait rendering tested on multiple devices (no overflow)
+- ✅ v2 corrections documented in CHANGELOG.md
 
 ---
 
-## Success Criteria Mapping
+## Notes
 
-| Success Criterion | Tasks | Verification |
-|-------------------|-------|--------------|
-| **SC-001**: Complete 3-player match | T048-T078 | E2E test (T076) |
-| **SC-002**: Mode switch < 3 taps | T064-T067 | Integration test (T073) |
-| **SC-003**: 100% rules enforced | T040-T044 | Unit tests (100% coverage) |
-| **SC-004**: Turn rotation with elimination | T058, T078 | E2E test (T078) |
-| **SC-005**: Elimination victory | T031, T076 | E2E test (T076) |
-| **SC-006**: Draw condition (60 moves) | T032, T077 | E2E test (T077) |
-| **SC-007**: 3 team colors (GREEN/RED/BLACK) | T079-T087, T090-T095 | Integration/snapshot tests |
-| **SC-008**: Extensible architecture | T009-T016 | RuleSet interface design |
-| **SC-009**: No performance degradation | T105-T109 | Performance tests |
+**Critical Corrections (v2)**:
+1. **Portrait 5×9 Layout**: Board MUST be Portrait-oriented (5 columns × 9 rows) aligned with phone's long edge
+2. **Four Corners Setup**: Pieces MUST be arranged in 4 corner blocks (2×4 each), NOT random scatter
+3. **Dynamic Faction Assignment**: Players MUST be assigned based on First Flip Rule, NOT pre-assigned
+4. **Army Chess Movement**: Ministers/Horses MUST move without blocking (no 象眼/馬腳), Generals/Rooks/Cannons MUST be blocked by obstacles
+5. **SafeAreaView**: UI MUST handle device notches and fit within screen without scrolling
 
----
+**Regression Prevention**:
+- All existing Classic mode tests MUST still pass after refactoring
+- `GameEngine.test.ts` (36 tests), `ClassicRules.test.ts` (33 tests), `BoardGenerator.test.ts` (15 tests) must remain green
 
-## Next Steps
-
-1. ✅ **Task breakdown complete** (this document)
-2. 🔜 **Begin implementation** following task order (T001 → T114)
-3. 🔜 **Commit after each logical group** using Conventional Commits format
-4. 🔜 **Run tests continuously** (TDD approach: write tests before implementation)
-5. 🔜 **Manual QA** after Phase 4 (first playable version)
-6. 🔜 **Performance profiling** in Phase 7
-7. 🔜 **Final review** and merge to main after all validation checks pass
+**Performance Targets**:
+- Three Kingdoms match initialization: < 2 seconds
+- Board rendering: 60 FPS (smooth on mobile)
+- Turn actions: < 100ms latency
 
 ---
 
-**Tasks Version**: 1.0.0  
-**Status**: ✅ Ready for Implementation  
-**Last Updated**: 2026-01-22  
-**Total Estimated Effort**: 4-6 days (43 hours)
+**Task List Version**: 5.0 (Phase 5 - Critical Corrections)  
+**Generated**: 2026-01-22  
+**Total Tasks**: 45  
+**Status**: ✅ **READY FOR EXECUTION** - Begin with T001 (Setup & Validation)

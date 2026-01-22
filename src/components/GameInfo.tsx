@@ -73,38 +73,25 @@ export const GameInfo: React.FC = () => {
     winReasonText = '(和棋)'; // (draw condition)
   }
 
-  // Determine turn indicator styling
-  const getTurnStyle = () => {
-    if (match.status !== 'in-progress') {
-      return styles.statusText;
-    }
-
-    const factionColor = currentFaction?.color;
-    if (factionColor === 'red') {
-      return [styles.statusText, styles.turnIndicatorRed];
-    } else if (factionColor === 'black') {
-      return [styles.statusText, styles.turnIndicatorBlack];
-    } else if (factionColor === 'green') {
-      return [styles.statusText, styles.turnIndicatorGreen];
-    }
-    return styles.statusText;
-  };
-
   return (
     <View style={styles.container}>
-      <View style={match.status === 'in-progress' ? styles.turnIndicatorContainer : {}}>
-        <Text style={getTurnStyle()}>
-          {statusText}
-          {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
-        </Text>
-      </View>
+      {/* Status Text (only for non-gameplay states) */}
+      {match.status !== 'in-progress' && (
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>
+            {statusText}
+            {winReasonText && <Text style={styles.winReason}> {winReasonText}</Text>}
+          </Text>
+        </View>
+      )}
 
-      {/* Player Avatars (supports both Classic and Three Kingdoms) */}
+      {/* Player Avatars with Captured Pieces (supports both Classic and Three Kingdoms) */}
       <View style={styles.playerAvatarsContainer}>
         {Array.from({ length: match.mode.playerCount }, (_, playerIndex) => {
           const assignedFactionId = match.playerFactionMap[playerIndex];
           const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
           const isActive = match.currentPlayerIndex === playerIndex;
+          const capturedPieces = assignedFactionId ? match.capturedByFaction[assignedFactionId] || [] : [];
 
           // Color circle or "?" if unassigned
           let playerColor = '#9E9E9E'; // Gray default
@@ -123,19 +110,47 @@ export const GameInfo: React.FC = () => {
           }
 
           return (
-            <View key={playerIndex} style={styles.playerAvatarWrapper}>
-              <View 
-                style={[
-                  styles.playerAvatar, 
-                  { borderColor: playerColor },
-                  isActive && styles.playerAvatarActive,
-                ]}
-              >
-                <Text style={[styles.playerAvatarText, { color: playerColor }]}>
-                  {playerLabel}
-                </Text>
+            <View key={playerIndex} style={styles.playerSection}>
+              {/* Avatar */}
+              <View style={styles.playerAvatarWrapper}>
+                <View 
+                  style={[
+                    styles.playerAvatar, 
+                    { borderColor: playerColor },
+                    isActive && styles.playerAvatarActive,
+                  ]}
+                >
+                  <Text style={[styles.playerAvatarText, { color: playerColor }]}>
+                    {playerLabel}
+                  </Text>
+                </View>
+                <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
               </View>
-              <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+
+              {/* Captured Pieces (Visual Mini-Icons) */}
+              {match.status === 'in-progress' && capturedPieces.length > 0 && (
+                <View style={styles.capturedPiecesContainer}>
+                  {capturedPieces.slice(0, 6).map((piece, idx) => {
+                    // Get Chinese character for the piece
+                    const pieceLabels: Record<string, string> = {
+                      'King': '將', 'Guard': '士', 'Minister': '相',
+                      'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
+                    };
+                    return (
+                      <View key={`${piece.id}-${idx}`} style={styles.miniPieceIcon}>
+                        <Text style={styles.miniPieceText}>
+                          {pieceLabels[piece.type] || '棋'}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                  {capturedPieces.length > 6 && (
+                    <View style={styles.miniPieceIcon}>
+                      <Text style={styles.miniPieceText}>+{capturedPieces.length - 6}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           );
         })}
@@ -147,20 +162,6 @@ export const GameInfo: React.FC = () => {
           <Text style={styles.drawCounterText}>
             距離和棋: {match.movesWithoutCapture} 步
           </Text>
-        </View>
-      )}
-
-      {match.status === 'in-progress' && (
-        <View style={styles.captureInfo}>
-          {match.factions.map((faction) => {
-            const captured = match.capturedByFaction[faction.id]?.length || 0;
-            const emoji = faction.color === 'red' ? '🔴' : faction.color === 'black' ? '⚫' : '🟢';
-            return (
-              <Text key={faction.id} style={styles.captureText}>
-                {getFactionDisplayName(faction.id)}俘獲: {captured} {emoji}
-              </Text>
-            );
-          })}
         </View>
       )}
 
@@ -181,53 +182,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8DC', // Cornsilk (light yellow)
     alignItems: 'center',
   },
-  turnIndicatorContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 8,
+  statusContainer: {
+    marginBottom: 12,
   },
   statusText: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#8B4513', // Brown
-    marginBottom: 8,
-  },
-  turnIndicatorRed: {
-    color: '#C62828', // Deep red
-    fontSize: 28,
-    borderWidth: 3,
-    borderColor: '#C62828',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#FFEBEE', // Light red background
-    overflow: 'hidden',
-  },
-  turnIndicatorBlack: {
-    color: '#1A1A1A', // Near black
-    fontSize: 28,
-    borderWidth: 3,
-    borderColor: '#1A1A1A',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#E0E0E0', // Light gray background
-    overflow: 'hidden',
-  },
-  turnIndicatorGreen: {
-    color: '#2E7D32', // Deep green
-    fontSize: 28,
-    borderWidth: 3,
-    borderColor: '#2E7D32',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#E8F5E9', // Light green background
-    overflow: 'hidden',
+    textAlign: 'center',
   },
   winReason: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#666',
     fontWeight: 'normal',
   },
@@ -246,16 +211,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  captureInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginTop: 8,
-  },
-  captureText: {
-    fontSize: 16,
-    color: '#333',
-  },
   finalScoreInfo: {
     marginTop: 8,
   },
@@ -267,18 +222,24 @@ const styles = StyleSheet.create({
   playerAvatarsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    alignItems: 'center',
-    marginTop: 12,
+    alignItems: 'flex-start',
+    width: '100%',
+    marginTop: 8,
     marginBottom: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     backgroundColor: '#FFFAF0', // Floral white
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#D7CCC8', // Light brown
   },
+  playerSection: {
+    alignItems: 'center',
+    flex: 1,
+  },
   playerAvatarWrapper: {
     alignItems: 'center',
+    marginBottom: 8,
   },
   playerAvatar: {
     width: 48,
@@ -290,12 +251,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   playerAvatarActive: {
-    borderWidth: 5,
+    borderWidth: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 8,
+    // Add glowing effect
+    transform: [{ scale: 1.1 }],
   },
   playerAvatarText: {
     fontSize: 20,
@@ -306,5 +269,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6D4C41',
     marginTop: 4,
+  },
+  capturedPiecesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+    maxWidth: 100,
+  },
+  miniPieceIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#E0E0E0',
+    borderWidth: 1,
+    borderColor: '#999',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 2,
+  },
+  miniPieceText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });

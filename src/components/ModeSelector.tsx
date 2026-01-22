@@ -1,12 +1,14 @@
 /**
- * ModeSelector - Game mode selection component (T064-T067)
- * Allows users to switch between Classic and Three Kingdoms modes
+ * ModeSelector - Full-screen Lobby experience for game mode selection
+ * Redesigned with large cards, title/logo, and wooden theme
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 import { GAME_MODES } from '../core/GameModes';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface ModeSelectorProps {
   onSelect?: () => void; // Optional callback after mode selection
@@ -29,131 +31,194 @@ export const ModeSelector: React.FC<ModeSelectorProps> = ({ onSelect }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>選擇遊戲模式</Text>
-      
-      <View style={styles.buttonsContainer}>
-        {/* Classic Mode Button */}
+    <View style={styles.lobbyContainer}>
+      {/* Logo/Title Section */}
+      <View style={styles.logoSection}>
+        <Text style={styles.mainTitle}>暗棋</Text>
+        <Text style={styles.subtitle}>DARK CHESS</Text>
+        <View style={styles.divider} />
+        <Text style={styles.welcomeText}>選擇遊戲模式</Text>
+      </View>
+
+      {/* Mode Cards Container */}
+      <View style={styles.cardsContainer}>
+        {/* Classic Mode Card */}
         <TouchableOpacity
-          style={[
-            styles.modeButton,
-            currentMode.id === 'classic' && styles.selectedButton,
-          ]}
+          style={[styles.modeCard, styles.classicCard]}
           onPress={() => handleModeSelect('classic')}
-          activeOpacity={0.7}
+          activeOpacity={0.85}
         >
-          <Text
-            style={[
-              styles.buttonText,
-              currentMode.id === 'classic' && styles.selectedButtonText,
-            ]}
-          >
-            經典暗棋
-          </Text>
-          <Text style={styles.subtitleText}>(Classic)</Text>
-          {currentMode.id === 'classic' && <Text style={styles.checkmark}>✓</Text>}
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardIcon}>♟️</Text>
+            <Text style={styles.cardTitle}>經典暗棋</Text>
+            <Text style={styles.cardSubtitle}>Classic Mode</Text>
+          </View>
+          <View style={styles.cardBody}>
+            <Text style={styles.cardFeature}>👥 2 位玩家</Text>
+            <Text style={styles.cardFeature}>🎲 32 格棋盤</Text>
+            <Text style={styles.cardFeature}>⚔️ 經典規則</Text>
+          </View>
+          {currentMode.id === 'classic' && (
+            <View style={styles.selectedBadge}>
+              <Text style={styles.selectedText}>✓ 已選擇</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
-        {/* Three Kingdoms Mode Button */}
+        {/* Three Kingdoms Mode Card */}
         <TouchableOpacity
-          style={[
-            styles.modeButton,
-            currentMode.id === 'three-kingdoms' && styles.selectedButton,
-          ]}
+          style={[styles.modeCard, styles.threeKingdomsCard]}
           onPress={() => handleModeSelect('three-kingdoms')}
-          activeOpacity={0.7}
+          activeOpacity={0.85}
         >
-          <Text
-            style={[
-              styles.buttonText,
-              currentMode.id === 'three-kingdoms' && styles.selectedButtonText,
-            ]}
-          >
-            三國暗棋
-          </Text>
-          <Text style={styles.subtitleText}>(Three Kingdoms)</Text>
-          {currentMode.id === 'three-kingdoms' && <Text style={styles.checkmark}>✓</Text>}
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardIcon}>🏰</Text>
+            <Text style={styles.cardTitle}>三國暗棋</Text>
+            <Text style={styles.cardSubtitle}>Three Kingdoms</Text>
+          </View>
+          <View style={styles.cardBody}>
+            <Text style={styles.cardFeature}>👥 3 位玩家</Text>
+            <Text style={styles.cardFeature}>🎲 45 交叉點</Text>
+            <Text style={styles.cardFeature}>⚔️ 特殊規則</Text>
+          </View>
+          {currentMode.id === 'three-kingdoms' && (
+            <View style={styles.selectedBadge}>
+              <Text style={styles.selectedText}>✓ 已選擇</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Mode Info */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>
-          {currentMode.id === 'classic' 
-            ? '2 位玩家 · 32 格 · 經典規則'
-            : '3 位玩家 · 45 交叉點 · 特殊規則'}
-        </Text>
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>選擇模式後將開始新遊戲</Text>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#FFF',
-    borderBottomWidth: 2,
-    borderBottomColor: '#E0E0E0',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12,
-  },
-  modeButton: {
+  lobbyContainer: {
     flex: 1,
-    marginHorizontal: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#DDD',
+    backgroundColor: '#D7CCC8', // Light brown/beige (wooden theme)
+    justifyContent: 'space-between',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    minHeight: SCREEN_HEIGHT * 0.8, // Full screen experience
+  },
+  logoSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 80,
+    marginTop: 20,
+    marginBottom: 30,
   },
-  selectedButton: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#388E3C',
+  mainTitle: {
+    fontSize: 56,
+    fontWeight: 'bold',
+    color: '#4E342E', // Dark brown
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+    letterSpacing: 8,
   },
-  buttonText: {
-    fontSize: 16,
+  subtitle: {
+    fontSize: 18,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    color: '#6D4C41', // Medium brown
+    letterSpacing: 4,
+    marginTop: 8,
   },
-  selectedButtonText: {
-    color: '#FFF',
+  divider: {
+    width: 120,
+    height: 3,
+    backgroundColor: '#8D6E63', // Medium-dark brown
+    marginVertical: 20,
+    borderRadius: 2,
   },
-  subtitleText: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  checkmark: {
+  welcomeText: {
     fontSize: 20,
-    color: '#FFF',
+    fontWeight: '600',
+    color: '#5D4037', // Dark wood brown
+    marginTop: 8,
+  },
+  cardsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 20,
+  },
+  modeCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 24,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 3,
+    minHeight: 180,
+  },
+  classicCard: {
+    borderColor: '#C62828', // Red border
+    backgroundColor: '#FFEBEE', // Light red background
+  },
+  threeKingdomsCard: {
+    borderColor: '#2E7D32', // Green border
+    backgroundColor: '#E8F5E9', // Light green background
+  },
+  cardHeader: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardIcon: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#3E2723', // Very dark brown
+    textAlign: 'center',
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#6D4C41',
+    fontStyle: 'italic',
     marginTop: 4,
+  },
+  cardBody: {
+    marginTop: 12,
+  },
+  cardFeature: {
+    fontSize: 16,
+    color: '#4E342E',
+    marginVertical: 4,
+    paddingLeft: 8,
+  },
+  selectedBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+  },
+  selectedText: {
+    color: '#FFF',
+    fontSize: 14,
     fontWeight: 'bold',
   },
-  infoContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#F9F9F9',
-    borderRadius: 6,
+  footer: {
     alignItems: 'center',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 2,
+    borderTopColor: '#BCAAA4',
   },
-  infoText: {
-    fontSize: 13,
-    color: '#666',
-    textAlign: 'center',
+  footerText: {
+    fontSize: 14,
+    color: '#6D4C41',
+    fontStyle: 'italic',
   },
 });

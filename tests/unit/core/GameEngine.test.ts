@@ -966,6 +966,106 @@ describe('GameEngine', () => {
     });
   });
 
+  describe('Classic Mode Turn Rotation', () => {
+    it('should rotate player index (0->1->0) in Classic mode after flip', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // First flip: assign factions and start game
+      const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
+      let currentMatch = executeFlip(classicMatch, redPieceIdx);
+      
+      // After first flip: P1 (index 0) should be current player
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.playerFactionMap[0]).toBe('red');
+      expect(currentMatch.playerFactionMap[1]).toBe('black');
+      
+      // Second flip: should rotate to P2 (index 1)
+      const secondPieceIdx = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
+      currentMatch = executeFlip(currentMatch, secondPieceIdx);
+      
+      // Should rotate to Player 1 (index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
+      
+      // Third flip: should rotate back to P1 (index 0)
+      const thirdPieceIdx = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
+      currentMatch = executeFlip(currentMatch, thirdPieceIdx);
+      
+      // Should rotate back to Player 0 (index 0)
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
+    });
+
+    it('should rotate player index (0->1->0) in Classic mode after move', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // First flip: assign factions and start game
+      const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
+      let currentMatch = executeFlip(classicMatch, redPieceIdx);
+      
+      // Setup: Place a red piece at index 0, empty at index 1 (adjacent)
+      const redPiece = currentMatch.board[redPieceIdx]!;
+      currentMatch.board[0] = { ...redPiece, isRevealed: true };
+      currentMatch.board[1] = null;
+      currentMatch.currentPlayerIndex = 0;
+      currentMatch.currentFactionIndex = currentMatch.activeFactions.indexOf('red');
+      
+      // Move: should rotate to P2 (index 1)
+      currentMatch = executeMove(currentMatch, 0, 1);
+      
+      // Should rotate to Player 1 (index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
+      
+      // Setup for second move: Place a black piece at index 2, empty at index 3
+      const blackPiece = currentMatch.board.find(p => p !== null && p.factionId === 'black')!;
+      currentMatch.board[2] = { ...blackPiece, isRevealed: true };
+      currentMatch.board[3] = null;
+      
+      // Move: should rotate back to P1 (index 0)
+      currentMatch = executeMove(currentMatch, 2, 3);
+      
+      // Should rotate back to Player 0 (index 0)
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
+    });
+
+    it('should rotate player index (0->1->0) in Classic mode after capture', () => {
+      const classicMatch = createInitialMatch(GAME_MODES.classic);
+      
+      // First flip: assign factions and start game
+      const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
+      let currentMatch = executeFlip(classicMatch, redPieceIdx);
+      
+      // Setup: Place a red Rook (rank 4) at index 0, black Pawn (rank 1) at index 1 (adjacent)
+      const redRook: Piece = {
+        id: 'red-rook-1',
+        type: 'Rook',
+        factionId: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+      const blackPawn: Piece = {
+        id: 'black-pawn-1',
+        type: 'Pawn',
+        factionId: 'black',
+        isRevealed: true,
+        isDead: false,
+      };
+      currentMatch.board[0] = redRook;
+      currentMatch.board[1] = blackPawn;
+      currentMatch.currentPlayerIndex = 0;
+      currentMatch.currentFactionIndex = currentMatch.activeFactions.indexOf('red');
+      
+      // Capture: should rotate to P2 (index 1)
+      currentMatch = executeCapture(currentMatch, 0, 1);
+      
+      // Should rotate to Player 1 (index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
+    });
+  });
+
   describe('Green Player Move Validation (Phase 7 Bug Fix)', () => {
     it('[Phase 7 Bug Fix] should allow green player to move green pieces', () => {
       const tkMatch = createInitialMatch(GAME_MODES.threeKingdoms);

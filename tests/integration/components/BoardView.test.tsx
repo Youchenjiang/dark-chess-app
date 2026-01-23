@@ -29,6 +29,8 @@ describe('BoardView Integration', () => {
       factions: [RED_FACTION, BLACK_FACTION],
       activeFactions: ['red', 'black'],
       currentFactionIndex: 0,
+      currentPlayerIndex: 0,
+      playerFactionMap: { 0: null, 1: null },
       winner: null,
       board: new Array(32).fill(null),
       capturedByFaction: { red: [], black: [] },
@@ -84,6 +86,8 @@ describe('BoardView Integration', () => {
         match: createTestMatch({
           status: 'in-progress',
           currentFactionIndex: 0, // red's turn
+          currentPlayerIndex: 0, // P1 (red)
+          playerFactionMap: { 0: 'red', 1: 'black' },
           board,
         }),
         flipPiece: mockFlipPiece,
@@ -129,6 +133,8 @@ describe('BoardView Integration', () => {
         match: createTestMatch({
           status: 'in-progress',
           currentFactionIndex: 0, // red's turn
+          currentPlayerIndex: 0, // P1 (red)
+          playerFactionMap: { 0: 'red', 1: 'black' },
           board,
         }),
         flipPiece: mockFlipPiece,
@@ -170,6 +176,8 @@ describe('BoardView Integration', () => {
         match: createTestMatch({
           status: 'in-progress',
           currentFactionIndex: 0, // red's turn
+          currentPlayerIndex: 0, // P1 (red)
+          playerFactionMap: { 0: 'red', 1: 'black' },
           board,
         }),
         flipPiece: mockFlipPiece,

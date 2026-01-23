@@ -149,8 +149,16 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
         newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
       }
     } else {
-      // Classic: rotate faction directly
-      newCurrentFactionIndex = getNextFactionIndex(match);
+      // Classic: rotate player (0 -> 1 -> 0)
+      newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+      // Update faction index based on the new player's assigned faction
+      const nextPlayerFaction = newPlayerFactionMap[newCurrentPlayerIndex];
+      if (nextPlayerFaction) {
+        newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
+      } else {
+        // Fallback: rotate faction directly if player faction not found
+        newCurrentFactionIndex = getNextFactionIndex(match);
+      }
     }
     // Decrement draw counter if applicable
     if (newMovesWithoutCapture !== null && newMovesWithoutCapture > 0) {
@@ -209,8 +217,16 @@ export function executeMove(match: Match, fromIndex: number, toIndex: number): M
       newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
     }
   } else {
-    // Classic: rotate faction directly
-    newCurrentFactionIndex = getNextFactionIndex(match);
+    // Classic: rotate player (0 -> 1 -> 0)
+    newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+    // Update faction index based on the new player's assigned faction
+    const nextPlayerFaction = match.playerFactionMap[newCurrentPlayerIndex];
+    if (nextPlayerFaction) {
+      newCurrentFactionIndex = match.activeFactions.indexOf(nextPlayerFaction);
+    } else {
+      // Fallback: rotate faction directly if player faction not found
+      newCurrentFactionIndex = getNextFactionIndex(match);
+    }
   }
 
   return {
@@ -320,11 +336,19 @@ export function executeCapture(match: Match, fromIndex: number, toIndex: number)
         }
       }
     } else {
-      // Classic: rotate faction directly
-      newCurrentFactionIndex = getNextFactionIndex({
-        ...match,
-        activeFactions: newActiveFactions,
-      });
+      // Classic: rotate player (0 -> 1 -> 0)
+      newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;
+      // Update faction index based on the new player's assigned faction
+      const nextPlayerFaction = match.playerFactionMap[newCurrentPlayerIndex];
+      if (nextPlayerFaction && newActiveFactions.includes(nextPlayerFaction)) {
+        newCurrentFactionIndex = newActiveFactions.indexOf(nextPlayerFaction);
+      } else {
+        // Fallback: rotate faction directly if player faction not found or eliminated
+        newCurrentFactionIndex = getNextFactionIndex({
+          ...match,
+          activeFactions: newActiveFactions,
+        });
+      }
     }
   }
 

@@ -103,9 +103,10 @@ describe('GameEngine', () => {
       expect(match.status).toBe('waiting-first-flip');
       expect(newMatch.status).toBe('in-progress');
 
-      // Current turn should be set to the flipped piece's faction
-      expect(match.currentFactionIndex).toBe(0);
-      expect(getCurrentFactionId(newMatch)).toBe(originalFactionId);
+      // After first flip, turn should pass to P2 (opposite faction)
+      const oppositeFactionId = originalFactionId === 'red' ? 'black' : 'red';
+      expect(newMatch.currentPlayerIndex).toBe(1); // P2's turn
+      expect(getCurrentFactionId(newMatch)).toBe(oppositeFactionId);
     });
 
     it('should toggle turn on subsequent flips', () => {
@@ -144,8 +145,13 @@ describe('GameEngine', () => {
     beforeEach(() => {
       // Create match in progress with revealed pieces
       inProgressMatch = executeFlip(match, 0);
-      // Place a revealed piece at index 0 and leave index 1 empty
-      const piece = inProgressMatch.board[0]!;
+      // After first flip, it's P2's turn. We need to set up for P2's faction.
+      // Find a piece of the current faction (P2's faction) and place it at index 0
+      const currentFactionId = getCurrentFactionId(inProgressMatch);
+      const currentFactionPiece = inProgressMatch.board.find(
+        p => p !== null && p.factionId === currentFactionId
+      )!;
+      inProgressMatch.board[0] = { ...currentFactionPiece, isRevealed: true };
       inProgressMatch.board[1] = null; // Ensure adjacent cell is empty
     });
 
@@ -940,10 +946,10 @@ describe('GameEngine', () => {
       // Player 2 should be assigned to black (opposite)
       expect(resultMatch.playerFactionMap[1]).toBe('black');
       
-      // Game should start with Player 1's turn
+      // After first flip, turn should pass to Player 2 (black faction)
       expect(resultMatch.status).toBe('in-progress');
-      expect(resultMatch.currentPlayerIndex).toBe(0);
-      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('red'));
+      expect(resultMatch.currentPlayerIndex).toBe(1);
+      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('black'));
     });
 
     it('[Phase 7 Bug Fix] should assign P1 to black if they flip black first', () => {
@@ -959,10 +965,10 @@ describe('GameEngine', () => {
       // Player 2 should be assigned to red (opposite)
       expect(resultMatch.playerFactionMap[1]).toBe('red');
       
-      // Game should start with Player 1's turn (black faction)
+      // After first flip, turn should pass to Player 2 (red faction)
       expect(resultMatch.status).toBe('in-progress');
-      expect(resultMatch.currentPlayerIndex).toBe(0);
-      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('black'));
+      expect(resultMatch.currentPlayerIndex).toBe(1);
+      expect(resultMatch.currentFactionIndex).toBe(resultMatch.activeFactions.indexOf('red'));
     });
   });
 
@@ -974,26 +980,27 @@ describe('GameEngine', () => {
       const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
       let currentMatch = executeFlip(classicMatch, redPieceIdx);
       
-      // After first flip: P1 (index 0) should be current player
-      expect(currentMatch.currentPlayerIndex).toBe(0);
+      // After first flip: P2 (index 1) should be current player (opposite faction)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
       expect(currentMatch.playerFactionMap[0]).toBe('red');
       expect(currentMatch.playerFactionMap[1]).toBe('black');
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
       
-      // Second flip: should rotate to P2 (index 1)
+      // Second flip: should rotate to P1 (index 0)
       const secondPieceIdx = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
       currentMatch = executeFlip(currentMatch, secondPieceIdx);
       
-      // Should rotate to Player 1 (index 1)
-      expect(currentMatch.currentPlayerIndex).toBe(1);
-      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
+      // Should rotate to Player 0 (index 0)
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
       
-      // Third flip: should rotate back to P1 (index 0)
+      // Third flip: should rotate back to P2 (index 1)
       const thirdPieceIdx = currentMatch.board.findIndex(p => p !== null && !p.isRevealed)!;
       currentMatch = executeFlip(currentMatch, thirdPieceIdx);
       
-      // Should rotate back to Player 0 (index 0)
-      expect(currentMatch.currentPlayerIndex).toBe(0);
-      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
+      // Should rotate back to Player 1 (index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
     });
 
     it('should rotate player index (0->1->0) in Classic mode after move', () => {
@@ -1003,31 +1010,31 @@ describe('GameEngine', () => {
       const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
       let currentMatch = executeFlip(classicMatch, redPieceIdx);
       
-      // Setup: Place a red piece at index 0, empty at index 1 (adjacent)
-      const redPiece = currentMatch.board[redPieceIdx]!;
-      currentMatch.board[0] = { ...redPiece, isRevealed: true };
+      // After first flip, it's P2's turn (black). Setup: Place a black piece at index 0, empty at index 1 (adjacent)
+      const blackPiece = currentMatch.board.find(p => p !== null && p.factionId === 'black')!;
+      currentMatch.board[0] = { ...blackPiece, isRevealed: true };
       currentMatch.board[1] = null;
-      currentMatch.currentPlayerIndex = 0;
-      currentMatch.currentFactionIndex = currentMatch.activeFactions.indexOf('red');
+      // currentPlayerIndex is already 1 (P2) after first flip
+      // currentFactionIndex is already black after first flip
       
       // Move: should rotate to P2 (index 1)
       currentMatch = executeMove(currentMatch, 0, 1);
       
-      // Should rotate to Player 1 (index 1)
-      expect(currentMatch.currentPlayerIndex).toBe(1);
-      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
-      
-      // Setup for second move: Place a black piece at index 2, empty at index 3
-      const blackPiece = currentMatch.board.find(p => p !== null && p.factionId === 'black')!;
-      currentMatch.board[2] = { ...blackPiece, isRevealed: true };
-      currentMatch.board[3] = null;
-      
-      // Move: should rotate back to P1 (index 0)
-      currentMatch = executeMove(currentMatch, 2, 3);
-      
-      // Should rotate back to Player 0 (index 0)
+      // Should rotate to Player 0 (index 0) - P1's turn now
       expect(currentMatch.currentPlayerIndex).toBe(0);
       expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
+      
+      // Setup for second move: Place a red piece at index 2, empty at index 3
+      const redPiece = currentMatch.board.find(p => p !== null && p.factionId === 'red')!;
+      currentMatch.board[2] = { ...redPiece, isRevealed: true };
+      currentMatch.board[3] = null;
+      
+      // Move: should rotate back to P2 (index 1)
+      currentMatch = executeMove(currentMatch, 2, 3);
+      
+      // Should rotate back to Player 1 (index 1)
+      expect(currentMatch.currentPlayerIndex).toBe(1);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
     });
 
     it('should rotate player index (0->1->0) in Classic mode after capture', () => {
@@ -1037,32 +1044,32 @@ describe('GameEngine', () => {
       const redPieceIdx = classicMatch.board.findIndex(p => p !== null && p.factionId === 'red')!;
       let currentMatch = executeFlip(classicMatch, redPieceIdx);
       
-      // Setup: Place a red Rook (rank 4) at index 0, black Pawn (rank 1) at index 1 (adjacent)
-      const redRook: Piece = {
-        id: 'red-rook-1',
+      // After first flip, it's P2's turn (black). Setup: Place a black Rook (rank 4) at index 0, red Pawn (rank 1) at index 1 (adjacent)
+      const blackRook: Piece = {
+        id: 'black-rook-1',
         type: 'Rook',
-        factionId: 'red',
-        isRevealed: true,
-        isDead: false,
-      };
-      const blackPawn: Piece = {
-        id: 'black-pawn-1',
-        type: 'Pawn',
         factionId: 'black',
         isRevealed: true,
         isDead: false,
       };
-      currentMatch.board[0] = redRook;
-      currentMatch.board[1] = blackPawn;
-      currentMatch.currentPlayerIndex = 0;
-      currentMatch.currentFactionIndex = currentMatch.activeFactions.indexOf('red');
+      const redPawn: Piece = {
+        id: 'red-pawn-1',
+        type: 'Pawn',
+        factionId: 'red',
+        isRevealed: true,
+        isDead: false,
+      };
+      currentMatch.board[0] = blackRook;
+      currentMatch.board[1] = redPawn;
+      // currentPlayerIndex is already 1 (P2) after first flip
+      // currentFactionIndex is already black after first flip
       
-      // Capture: should rotate to P2 (index 1)
+      // Capture: should rotate to P1 (index 0)
       currentMatch = executeCapture(currentMatch, 0, 1);
       
-      // Should rotate to Player 1 (index 1)
-      expect(currentMatch.currentPlayerIndex).toBe(1);
-      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('black'));
+      // Should rotate to Player 0 (index 0)
+      expect(currentMatch.currentPlayerIndex).toBe(0);
+      expect(currentMatch.currentFactionIndex).toBe(currentMatch.activeFactions.indexOf('red'));
     });
   });
 

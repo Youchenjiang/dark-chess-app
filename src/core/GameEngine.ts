@@ -129,10 +129,10 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
       newPlayerFactionMap[0] = flippedFactionId;
       newPlayerFactionMap[1] = oppositeFactionId;
       
-      // Start game with P1's faction
+      // After first flip, turn passes to P2 (opposite faction)
       newStatus = 'in-progress';
-      newCurrentFactionIndex = match.activeFactions.indexOf(flippedFactionId);
-      newCurrentPlayerIndex = 0; // P1 starts
+      newCurrentPlayerIndex = 1; // P2's turn after first flip
+      newCurrentFactionIndex = match.activeFactions.indexOf(oppositeFactionId);
       
       if (newCurrentFactionIndex === -1) {
         newCurrentFactionIndex = 0; // Fallback

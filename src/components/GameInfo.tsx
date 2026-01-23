@@ -15,10 +15,6 @@ export const GameInfo: React.FC = () => {
     return null;
   }
 
-  // Get current faction info
-  const currentFactionId = match.activeFactions[match.currentFactionIndex];
-  const currentFaction = match.factions.find((f) => f.id === currentFactionId);
-
   // Faction display names
   const getFactionDisplayName = (factionId: string): string => {
     const factionNames: Record<string, string> = {
@@ -31,35 +27,100 @@ export const GameInfo: React.FC = () => {
     return factionNames[factionId] || factionId;
   };
 
+  // Helper: Get player color and label
+  const getPlayerInfo = (assignedFaction: any) => {
+    let playerColor = '#9E9E9E'; // Gray default
+    let playerLabel = '?';
+    if (assignedFaction) {
+      if (assignedFaction.color === 'green') {
+        playerColor = '#2E7D32';
+        playerLabel = '綠';
+      } else if (assignedFaction.color === 'red') {
+        playerColor = '#C62828';
+        playerLabel = '紅';
+      } else if (assignedFaction.color === 'black') {
+        playerColor = '#212121';
+        playerLabel = '黑';
+      }
+    }
+    return { playerColor, playerLabel };
+  };
+
+  // Render single player info
+  const renderPlayerInfo = (playerIndex: number) => {
+    const assignedFactionId = match.playerFactionMap[playerIndex];
+    const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
+    const isActive = match.currentPlayerIndex === playerIndex;
+    const capturedPieces = assignedFactionId ? match.capturedByFaction[assignedFactionId] || [] : [];
+    const { playerColor, playerLabel } = getPlayerInfo(assignedFaction);
+
+    return (
+      <View key={playerIndex} style={styles.sidePlayerSection} pointerEvents="box-none">
+        <View style={styles.playerAvatarWrapper} pointerEvents="auto">
+          <View 
+            style={[
+              styles.playerAvatar, 
+              { borderColor: playerColor },
+              isActive && styles.playerAvatarActive,
+            ]}
+          >
+            <Text style={[styles.playerAvatarText, { color: playerColor }]}>
+              {playerLabel}
+            </Text>
+          </View>
+          <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
+        </View>
+
+        {/* Captured Pieces (Visual Mini-Icons) */}
+        {match.status === 'in-progress' && capturedPieces.length > 0 && (
+          <View style={styles.capturedPiecesContainer}>
+            {capturedPieces.slice(0, 10).map((piece, idx) => {
+              const pieceLabels: Record<string, string> = {
+                'King': '將', 'Guard': '士', 'Minister': '相',
+                'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
+              };
+              return (
+                <View key={`${piece.id}-${idx}`} style={styles.miniPieceIcon}>
+                  <Text style={styles.miniPieceText}>
+                    {pieceLabels[piece.type] || '棋'}
+                  </Text>
+                </View>
+              );
+            })}
+            {capturedPieces.length > 10 && (
+              <View style={styles.miniPieceIcon}>
+                <Text style={styles.miniPieceText}>+{capturedPieces.length - 10}</Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  // Classic mode: Side-by-side layout (left: P1, right: P2)
+  if (match.mode.id === 'classic') {
+    return (
+      <View style={styles.sideContainer}>
+        {renderPlayerInfo(0)}
+        {renderPlayerInfo(1)}
+      </View>
+    );
+  }
+
+  // Three Kingdoms mode: Top layout (fallback to original)
   return (
     <View style={styles.container}>
-      {/* Player Avatars with Captured Pieces (supports both Classic and Three Kingdoms) */}
       <View style={styles.playerAvatarsContainer}>
         {Array.from({ length: match.mode.playerCount }, (_, playerIndex) => {
           const assignedFactionId = match.playerFactionMap[playerIndex];
           const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
           const isActive = match.currentPlayerIndex === playerIndex;
           const capturedPieces = assignedFactionId ? match.capturedByFaction[assignedFactionId] || [] : [];
-
-          // Color circle or "?" if unassigned
-          let playerColor = '#9E9E9E'; // Gray default
-          let playerLabel = '?';
-          if (assignedFaction) {
-            if (assignedFaction.color === 'green') {
-              playerColor = '#2E7D32';
-              playerLabel = '綠';
-            } else if (assignedFaction.color === 'red') {
-              playerColor = '#C62828';
-              playerLabel = '紅';
-            } else if (assignedFaction.color === 'black') {
-              playerColor = '#212121';
-              playerLabel = '黑';
-            }
-          }
+          const { playerColor, playerLabel } = getPlayerInfo(assignedFaction);
 
           return (
             <View key={playerIndex} style={styles.playerSection}>
-              {/* Avatar */}
               <View style={styles.playerAvatarWrapper}>
                 <View 
                   style={[
@@ -73,19 +134,11 @@ export const GameInfo: React.FC = () => {
                   </Text>
                 </View>
                 <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
-                {/* Active player turn indicator */}
-                {isActive && (
-                  <Text style={[styles.turnIndicatorText, { color: playerColor }]}>
-                    你的回合
-                  </Text>
-                )}
               </View>
 
-              {/* Captured Pieces (Visual Mini-Icons) */}
               {match.status === 'in-progress' && capturedPieces.length > 0 && (
                 <View style={styles.capturedPiecesContainer}>
                   {capturedPieces.slice(0, 6).map((piece, idx) => {
-                    // Get Chinese character for the piece
                     const pieceLabels: Record<string, string> = {
                       'King': '將', 'Guard': '士', 'Minister': '相',
                       'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
@@ -110,7 +163,6 @@ export const GameInfo: React.FC = () => {
         })}
       </View>
 
-      {/* Draw counter for Three Kingdoms mode */}
       {match.status === 'in-progress' && match.movesWithoutCapture !== null && (
         <View style={styles.drawCounterContainer}>
           <Text style={styles.drawCounterText}>
@@ -135,6 +187,24 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FFF8DC', // Cornsilk (light yellow)
     alignItems: 'center',
+  },
+  sideContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    pointerEvents: 'box-none', // Allow touches to pass through to board
+  },
+  sidePlayerSection: {
+    alignItems: 'center',
+    width: 80,
+    pointerEvents: 'box-none',
   },
   drawCounterContainer: {
     marginTop: 8,
@@ -210,23 +280,13 @@ const styles = StyleSheet.create({
     color: '#6D4C41',
     marginTop: 4,
   },
-  turnIndicatorText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 4,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
   capturedPiecesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
-    maxWidth: 100,
+    marginTop: 8,
+    maxWidth: 80,
   },
   miniPieceIcon: {
     width: 20,

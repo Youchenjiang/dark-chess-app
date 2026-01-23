@@ -92,6 +92,13 @@ export default function App() {
         </View>
         {showModeSelector ? (
           <ModeSelector onSelect={handleModeSelected} />
+        ) : match?.mode.id === 'classic' ? (
+          <View style={styles.gameContainer}>
+            <View style={styles.boardContainer}>
+              <BoardView />
+            </View>
+            <GameInfo />
+          </View>
         ) : (
           <>
             <GameInfo />
@@ -167,5 +174,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  gameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+  },
+  boardContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 0, // Allow flex shrinking
   },
 });

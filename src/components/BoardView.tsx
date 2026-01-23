@@ -18,13 +18,7 @@ export const BoardView: React.FC = () => {
 
   const handleCellTap = (index: number) => {
     const piece = match.board[index];
-    const currentFactionId = match.activeFactions[match.currentFactionIndex];
-
-    // If match is waiting for first flip, only allow flip
-    if (match.status === 'waiting-first-flip') {
-      flipPiece(index);
-      return;
-    }
+    const currentPlayerFactionId = match.playerFactionMap[match.currentPlayerIndex] ?? null;
 
     // If match is ended, do nothing
     if (match.status === 'ended') {
@@ -40,7 +34,12 @@ export const BoardView: React.FC = () => {
       }
 
       // If tapped on a face-up own piece, select it
-      if (piece !== null && piece.isRevealed && piece.factionId === currentFactionId) {
+      if (
+        piece !== null &&
+        piece.isRevealed &&
+        currentPlayerFactionId !== null &&
+        piece.factionId === currentPlayerFactionId
+      ) {
         setSelectedIndex(index);
         return;
       }

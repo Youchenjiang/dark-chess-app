@@ -71,10 +71,10 @@ export const GameInfo: React.FC = () => {
           <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
         </View>
 
-        {/* Captured Pieces (Visual Mini-Icons) */}
+        {/* Captured Pieces (Visual Mini-Icons) - Vertical Column */}
         {match.status === 'in-progress' && capturedPieces.length > 0 && (
           <View style={styles.capturedPiecesContainer}>
-            {capturedPieces.slice(0, 10).map((piece, idx) => {
+            {capturedPieces.slice(0, 16).map((piece, idx) => {
               const pieceLabels: Record<string, string> = {
                 'King': '將', 'Guard': '士', 'Minister': '相',
                 'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
@@ -87,9 +87,9 @@ export const GameInfo: React.FC = () => {
                 </View>
               );
             })}
-            {capturedPieces.length > 10 && (
+            {capturedPieces.length > 16 && (
               <View style={styles.miniPieceIcon}>
-                <Text style={styles.miniPieceText}>+{capturedPieces.length - 10}</Text>
+                <Text style={styles.miniPieceText}>+{capturedPieces.length - 16}</Text>
               </View>
             )}
           </View>
@@ -101,10 +101,16 @@ export const GameInfo: React.FC = () => {
   // Classic mode: Side-by-side layout (left: P1, right: P2)
   if (match.mode.id === 'classic') {
     return (
-      <View style={styles.sideContainer}>
-        {renderPlayerInfo(0)}
-        {renderPlayerInfo(1)}
-      </View>
+      <>
+        {/* Left side: P1 */}
+        <View style={styles.leftSideContainer}>
+          {renderPlayerInfo(0)}
+        </View>
+        {/* Right side: P2 */}
+        <View style={styles.rightSideContainer}>
+          {renderPlayerInfo(1)}
+        </View>
+      </>
     );
   }
 
@@ -188,22 +194,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8DC', // Cornsilk (light yellow)
     alignItems: 'center',
   },
-  sideContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  leftSideContainer: {
     position: 'absolute',
     left: 0,
+    top: 0,
+    bottom: 0,
+    width: 60, // Fixed width for left side
+    paddingLeft: 4,
+    paddingVertical: 8,
+    alignItems: 'center',
+    pointerEvents: 'box-none', // Allow touches to pass through to board
+  },
+  rightSideContainer: {
+    position: 'absolute',
     right: 0,
     top: 0,
     bottom: 0,
-    paddingHorizontal: 8,
+    width: 60, // Fixed width for right side
+    paddingRight: 4,
     paddingVertical: 8,
+    alignItems: 'center',
     pointerEvents: 'box-none', // Allow touches to pass through to board
   },
   sidePlayerSection: {
     alignItems: 'center',
-    width: 80,
+    width: '100%',
     pointerEvents: 'box-none',
   },
   drawCounterContainer: {
@@ -281,12 +296,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   capturedPiecesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: 'column', // Vertical column (直排)
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: 8,
-    maxWidth: 80,
+    width: '100%',
   },
   miniPieceIcon: {
     width: 20,

@@ -177,15 +177,13 @@ const styles = StyleSheet.create({
   },
   gameContainer: {
     flex: 1,
-    flexDirection: 'row',
     width: '100%',
-    alignItems: 'stretch',
-    justifyContent: 'space-between',
+    position: 'relative', // For absolute positioning of GameInfo
   },
   boardContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 0, // Allow flex shrinking
+    marginHorizontal: 60, // Leave space for left/right player info (30px each side)
   },
 });

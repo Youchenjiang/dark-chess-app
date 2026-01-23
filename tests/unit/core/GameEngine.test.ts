@@ -770,10 +770,7 @@ describe('GameEngine', () => {
       }
     });
 
-    it('should transition to in-progress when all 3 players assigned', () => {
-      // We need to manually create a scenario where all 3 players get different factions
-      // This is tricky with random board, so let's simulate step by step
-
+    it('should auto-assign remaining faction and transition to in-progress when 2 factions chosen', () => {
       // Player 0 flips first piece (team-a)
       const teamAPieceIdx = tkMatch.board.findIndex((p) => p !== null && p.factionId === 'team-a')!;
       let currentMatch = executeFlip(tkMatch, teamAPieceIdx);
@@ -786,24 +783,18 @@ describe('GameEngine', () => {
       );
       if (teamBPieceIdx !== -1) {
         currentMatch = executeFlip(currentMatch, teamBPieceIdx);
-        expect(currentMatch.playerFactionMap[1]).toBe('team-b');
-        expect(currentMatch.status).toBe('waiting-first-flip');
 
-        // Player 2 flips third piece (team-c)
-        const teamCPieceIdx = currentMatch.board.findIndex(
-          (p) => p !== null && !p.isRevealed && p.factionId === 'team-c'
+        // Player 1 should be team-b
+        expect(currentMatch.playerFactionMap[1]).toBe('team-b');
+        // Player 2 should be auto-assigned to team-c (remaining faction)
+        expect(currentMatch.playerFactionMap[2]).toBe('team-c');
+
+        // Now all 3 players are assigned → game transitions to 'in-progress'
+        expect(currentMatch.status).toBe('in-progress');
+        // Current faction should be the faction of Player 0
+        expect(currentMatch.currentFactionIndex).toBe(
+          currentMatch.activeFactions.indexOf('team-a')
         );
-        if (teamCPieceIdx !== -1) {
-          currentMatch = executeFlip(currentMatch, teamCPieceIdx);
-          expect(currentMatch.playerFactionMap[2]).toBe('team-c');
-          
-          // Now all 3 players are assigned → game transitions to 'in-progress'
-          expect(currentMatch.status).toBe('in-progress');
-          // Current faction should be the faction of Player 0
-          expect(currentMatch.currentFactionIndex).toBe(
-            currentMatch.activeFactions.indexOf('team-a')
-          );
-        }
       }
     });
 

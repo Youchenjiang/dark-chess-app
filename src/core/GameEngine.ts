@@ -63,13 +63,13 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
       const flippedFactionId = piece.factionId;
       const currentPlayer = match.currentPlayerIndex;
       const currentPlayerFaction = match.playerFactionMap[currentPlayer];
-      
+
       // FACTION LOCKING: If current player is already assigned, DO NOT change their faction
       if (currentPlayerFaction === null) {
         // Player NOT assigned yet - execute First Flip assignment logic
         // Check if this faction is already taken by another player
         const isFactionTaken = Object.entries(match.playerFactionMap).some(
-          ([playerIdx, factionId]) => 
+          ([playerIdx, factionId]) =>
             Number(playerIdx) !== currentPlayer && factionId === flippedFactionId
         );
 
@@ -80,6 +80,32 @@ export function executeFlip(match: Match, pieceIndex: number): Match {
         // Note: If faction is taken, player remains unassigned (retry next turn)
       }
       // If player IS assigned, skip assignment logic (faction is locked)
+
+      // AUTO-ASSIGN REMAINING FACTION:
+      // Once two distinct factions are taken, the last unassigned player
+      // automatically receives the remaining faction. They no longer need
+      // to "choose" a faction via flip.
+      const unassignedPlayers = Object.entries(newPlayerFactionMap)
+        .filter(([, factionId]) => factionId === null)
+        .map(([playerIdx]) => Number(playerIdx));
+
+      const assignedFactions = Array.from(
+        new Set(
+          Object.values(newPlayerFactionMap).filter(
+            (factionId): factionId is string => factionId !== null
+          )
+        )
+      );
+
+      if (unassignedPlayers.length === 1 && assignedFactions.length >= 2) {
+        const remainingFaction = match.activeFactions.find(
+          (factionId) => !assignedFactions.includes(factionId)
+        );
+
+        if (remainingFaction) {
+          newPlayerFactionMap[unassignedPlayers[0]] = remainingFaction;
+        }
+      }
 
       // Move to next player (rotate 0 -> 1 -> 2 -> 0)
       newCurrentPlayerIndex = (match.currentPlayerIndex + 1) % match.mode.playerCount;

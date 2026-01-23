@@ -74,7 +74,7 @@ export const GameInfo: React.FC = () => {
         {/* Captured Pieces (Visual Mini-Icons) - Vertical Column */}
         {match.status === 'in-progress' && capturedPieces.length > 0 && (
           <View style={styles.capturedPiecesContainer}>
-            {capturedPieces.slice(0, 16).map((piece, idx) => {
+            {capturedPieces.slice(0, 20).map((piece, idx) => {
               const pieceLabels: Record<string, string> = {
                 'King': '將', 'Guard': '士', 'Minister': '相',
                 'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
@@ -87,9 +87,9 @@ export const GameInfo: React.FC = () => {
                 </View>
               );
             })}
-            {capturedPieces.length > 16 && (
+            {capturedPieces.length > 20 && (
               <View style={styles.miniPieceIcon}>
-                <Text style={styles.miniPieceText}>+{capturedPieces.length - 16}</Text>
+                <Text style={styles.miniPieceText}>+{capturedPieces.length - 20}</Text>
               </View>
             )}
           </View>
@@ -114,77 +114,36 @@ export const GameInfo: React.FC = () => {
     );
   }
 
-  // Three Kingdoms mode: Top layout (fallback to original)
+  // Three Kingdoms mode: Side layout (left: P1, right: P2 & P3)
   return (
-    <View style={styles.container}>
-      <View style={styles.playerAvatarsContainer}>
-        {Array.from({ length: match.mode.playerCount }, (_, playerIndex) => {
-          const assignedFactionId = match.playerFactionMap[playerIndex];
-          const assignedFaction = match.factions.find((f) => f.id === assignedFactionId);
-          const isActive = match.currentPlayerIndex === playerIndex;
-          const capturedPieces = assignedFactionId ? match.capturedByFaction[assignedFactionId] || [] : [];
-          const { playerColor, playerLabel } = getPlayerInfo(assignedFaction);
-
-          return (
-            <View key={playerIndex} style={styles.playerSection}>
-              <View style={styles.playerAvatarWrapper}>
-                <View 
-                  style={[
-                    styles.playerAvatar, 
-                    { borderColor: playerColor },
-                    isActive && styles.playerAvatarActive,
-                  ]}
-                >
-                  <Text style={[styles.playerAvatarText, { color: playerColor }]}>
-                    {playerLabel}
-                  </Text>
-                </View>
-                <Text style={styles.playerAvatarLabel}>P{playerIndex + 1}</Text>
-              </View>
-
-              {match.status === 'in-progress' && capturedPieces.length > 0 && (
-                <View style={styles.capturedPiecesContainer}>
-                  {capturedPieces.slice(0, 6).map((piece, idx) => {
-                    const pieceLabels: Record<string, string> = {
-                      'King': '將', 'Guard': '士', 'Minister': '相',
-                      'Rook': '車', 'Horse': '馬', 'Cannon': '炮', 'Pawn': '兵',
-                    };
-                    return (
-                      <View key={`${piece.id}-${idx}`} style={styles.miniPieceIcon}>
-                        <Text style={styles.miniPieceText}>
-                          {pieceLabels[piece.type] || '棋'}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                  {capturedPieces.length > 6 && (
-                    <View style={styles.miniPieceIcon}>
-                      <Text style={styles.miniPieceText}>+{capturedPieces.length - 6}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-          );
-        })}
+    <>
+      {/* Left side: P1 */}
+      <View style={styles.leftSideContainer}>
+        {renderPlayerInfo(0)}
       </View>
-
+      {/* Right side: P2 and P3 stacked vertically */}
+      <View style={styles.rightSideContainer}>
+        <View style={styles.rightSidePlayersWrapper}>
+          {renderPlayerInfo(1)}
+          {renderPlayerInfo(2)}
+        </View>
+      </View>
+      {/* Draw counter and final score - positioned at top center */}
       {match.status === 'in-progress' && match.movesWithoutCapture !== null && (
-        <View style={styles.drawCounterContainer}>
+        <View style={styles.drawCounterOverlay}>
           <Text style={styles.drawCounterText}>
             距離和棋: {match.movesWithoutCapture} 步
           </Text>
         </View>
       )}
-
       {match.status === 'ended' && (
-        <View style={styles.finalScoreInfo}>
+        <View style={styles.finalScoreOverlay}>
           <Text style={styles.finalScoreText}>
             最終比數: {match.factions.map((f) => `${getFactionDisplayName(f.id)} ${match.capturedByFaction[f.id]?.length || 0}`).join(' - ')}
           </Text>
         </View>
       )}
-    </View>
+    </>
   );
 };
 
@@ -214,7 +173,32 @@ const styles = StyleSheet.create({
     paddingRight: 4,
     paddingVertical: 8,
     alignItems: 'center',
+    justifyContent: 'flex-start',
     pointerEvents: 'box-none', // Allow touches to pass through to board
+  },
+  rightSidePlayersWrapper: {
+    alignItems: 'center',
+    gap: 16, // Space between P2 and P3
+  },
+  drawCounterOverlay: {
+    position: 'absolute',
+    top: 8,
+    left: '50%',
+    transform: [{ translateX: -75 }], // Center horizontally (approximate)
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFF3E0', // Light orange
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FF9800', // Orange
+    pointerEvents: 'box-none',
+  },
+  finalScoreOverlay: {
+    position: 'absolute',
+    top: 8,
+    left: '50%',
+    transform: [{ translateX: -100 }], // Center horizontally (approximate)
+    pointerEvents: 'box-none',
   },
   sidePlayerSection: {
     alignItems: 'center',

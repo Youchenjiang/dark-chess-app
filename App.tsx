@@ -92,18 +92,13 @@ export default function App() {
         </View>
         {showModeSelector ? (
           <ModeSelector onSelect={handleModeSelected} />
-        ) : match?.mode.id === 'classic' ? (
+        ) : (
           <View style={styles.gameContainer}>
             <View style={styles.boardContainer}>
               <BoardView />
             </View>
             <GameInfo />
           </View>
-        ) : (
-          <>
-            <GameInfo />
-            <BoardView />
-          </>
         )}
       </View>
       {error && (
